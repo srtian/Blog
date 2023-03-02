@@ -1,5 +1,64 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<feed xmlns="http://www.w3.org/2005/Atom"><id>https://github.com/srtian/Blog</id><title>RSS feed of srtian's Blog</title><updated>2023-03-02T09:35:06.985155+00:00</updated><author><name>srtian</name><email>shenruotian@gmail.com</email></author><link href="https://github.com/srtian/Blog"/><link href="https://raw.githubusercontent.com/srtian/Blog/master/feed.xml" rel="self"/><generator uri="https://lkiesow.github.io/python-feedgen" version="0.9.0">python-feedgen</generator><entry><id>https://github.com/srtian/Blog/issues/26</id><title>《领域驱动设计》</title><updated>2023-03-02T09:35:07.281953+00:00</updated><content type="html"><![CDATA[<p>之前在接手BPM的工作时，被大佬推荐学习一下领域驱动设计，因此花了不少时间阅读了 Eric 的这本经典著作，不少章节翻了很多次，也有不少章节则选择性的放弃了（有一说一，很多模式实在不太理解），自我感觉总结起来主要有两点核心的思想：</p>
+<feed xmlns="http://www.w3.org/2005/Atom"><id>https://github.com/srtian/Blog</id><title>RSS feed of srtian's Blog</title><updated>2023-03-02T09:37:44.444161+00:00</updated><author><name>srtian</name><email>shenruotian@gmail.com</email></author><link href="https://github.com/srtian/Blog"/><link href="https://raw.githubusercontent.com/srtian/Blog/master/feed.xml" rel="self"/><generator uri="https://lkiesow.github.io/python-feedgen" version="0.9.0">python-feedgen</generator><entry><id>https://github.com/srtian/Blog/issues/27</id><title>Node 多进程和 cluster 原理</title><updated>2023-03-02T09:37:44.855907+00:00</updated><content type="html"><![CDATA[<h1>一、概述</h1>
+<p>由于node.js 主线程是单线程的，因此当我们的 node 程序运行时，通常只启动了一个进程，只能在一个 CPU 中进行运算，无法运用服务器中的多核 CPU。这显然是对于多核CPU服务器性能的浪费，因此我们需要寻求一些解决方案，来充分利用服务器的多核CPU，从而提升我们程序的运行效率。而对于这种情况，我们通常的做法就是 多进程分发策略：即主进程接收所有的请求，通过一定的负载均衡策略分发到不同的子进程中。而这一方案，其实也有两种不同的实现方式：</p>
+<ol>
+<li>主进程监听一个端口，子进程不监听端口，主进程分发请求到子进程中。这样做的好处在于，通常只需要占用一个端口，通信相对简单，转发策略也更为灵活。缺点则是实现相对会比较复杂，对主进程的稳定性也有更高的要求。</li>
+<li>主进程和子进程分别监听不同的端口，通过主进程分发请求到子进程。即创建一个主进程，以及若干个子进程。由主进程监听客户端连接请求，并根据特定的策略，转发给子进程。这样做的优势在于：实现相对简单，各实例相对独立，这对服务稳定性有好处。而缺点则是：增加端口的占用，且进程之间通信会比较麻烦。</li>
+</ol>
+<p>而node 的 cluster 模块就是第一个方案的实现。cluster 模块是对child_process 模块的进一步封装，专用于解决单进程NodeJS Web服务器无法充分利用多核CPU的问题。</p>
+<p>cluster 具体使用起来很简单，node官方文档也将的非常仔细，在此也就不多做赘述了：</p>
+<blockquote>
+<p><a href="http://nodejs.cn/api/cluster.html#cluster_cluster">http://nodejs.cn/api/cluster.html#cluster_cluster</a></p>
+</blockquote>
+<p>其原理官方文档也有所提及：其工作进程是由 child_process.fork() 方法创建，因此它们可以使用 IPC 和 父进程通信，从而使其各进程交替处理连接服务。在 node 的主从模型中，master 主管监听端口，以及将对应任务分发给 worker 子进程，起着一个中枢的作用。按照我们通常的理解，如果根据使用各 worker 进程的负载情况来挑选woker来执行对应的任务，效率应该会比直接循环发放要来的高，但 node 文档中提到这种声明方式会受到操作系统的调度机制影响，使其分发变得不稳定，因此 node 也就将 循环法 作为了默认的分发策略。</p>
+<blockquote>
+<p>需要注意的是，node 官方文档中使用 worker 来表示主进程fork出的子进程，这其实会让不少前端开发者会将其与浏览器环境中的 worker 多线程相混淆，但他们其实不是一个东西。</p>
+</blockquote>
+<h1>二、线程和进程</h1>
+<p>上面提到，cluster 是解决单进程的问题。但大家估计也听说过JavaScript是单线程的语言（实际上，我在面试一些候选人的时候，问到 node 的多进程实现，他们也会反问我JavaScript是单线程的，关多进程什么事情）。因此为了方便后续的讨论，我们再次还需要再说明一下，线程和进程的区别。</p>
+<p>首先，进程和线程的主要差别在于它们是不同的操作系统资源管理方式。进程是资源分配的基本单位，而线程是独立调度的基本单位，一个进程中可以有多个线程，它们可以共享进程资源。它们的主要区别如下：</p>
+<ul>
+<li>拥有资源：进程是资源分配的基本单位，而线程则不拥有资源，只能去访问其隶属于的进程的资源</li>
+<li>调度：线程中是独立调度的基本单位</li>
+<li>系统开销：线程的切换，只需保存和设置少许的寄存器内容，开销很小。而进程的切换，则涉及当前执行CPU环境的保存和新调度进程CPU环境的设置</li>
+<li>通信方面：线程间可以通过直接读取同一进程中的数据进行通信，但是进程通信需要借助 IPC。</li>
+</ul>
+<h1>三、Cluster原理</h1>
+<p>对于 cluster 模块，我们主要需要关注两部分的内容：</p>
+<ol>
+<li>cluster 是如何做到多个进程监听同一端口的</li>
+<li>node 是如何实现负载均衡请求分发的</li>
+</ol>
+<h2>3.1、多进程监听同一端口</h2>
+<p>在 cluster 模式中，存在 master 和 worker 的概念。我在上面也提到了，这个 worker 并不是我们在浏览器中的worker。在这里，master 指的是主进程，而 worker 指的是子进程。它们的创建也非常简单：<br />                       <img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1618838760382-aef9b538-5d9a-4369-a03c-9c30914ef595.png#clientId=u7f471342-e022-4&amp;from=paste&amp;height=366&amp;id=u2dbe4144&amp;name=image.png&amp;originHeight=732&amp;originWidth=1070&amp;originalType=binary&amp;ratio=1&amp;size=146177&amp;status=done&amp;style=none&amp;taskId=uc17db156-8851-4a2e-8bf1-ebdca56983d&amp;width=535" alt="image.png" /><br />在上述代码中，第一次 require 的 cluster 对象就模式是一个 master。对应的源码也非常简单，本质上是通过进程环境变量设置来进程判断，这是node的主进程在进行子进程管理时的标识，当调用<code>cluster.fork()</code> 时，会生成一个子进程时会以一个自增ID的形式生成这个环境变量。如果没有设置就是 master 进程，反之即为 worker：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1618838731846-8471dae5-7759-445e-838f-602b37f1d7d6.png#clientId=u7f471342-e022-4&amp;from=paste&amp;height=258&amp;id=u42e5a9bb&amp;name=image.png&amp;originHeight=516&amp;originWidth=1598&amp;originalType=binary&amp;ratio=1&amp;size=125649&amp;status=done&amp;style=none&amp;taskId=u3dd6f8a3-a633-4440-be32-7e00e2d7ad4&amp;width=799" alt="image.png" /><br /><a href="https://github.com/nodejs/node/blob/master/lib/cluster.js">                             https://github.com/nodejs/node/blob/master/lib/cluster.js</a><br />因此我们第一次调用 cluster 模块就是 master 进程，后续的则都为 worker。另外主进程和子进程 require 文件也不同：</p>
+<ul>
+<li>主进程：internal/cluster/primary</li>
+<li>子进程：internal/cluster/child</li>
+</ul>
+<h3>主进程模块</h3>
+<p>先让我们来瞅瞅 master 进程的创建过程，由于代码其实还挺多，因此就不全部粘贴出来了，可自行去浏览：</p>
+<blockquote>
+<p><a href="https://github.com/nodejs/node/blob/7397c7e4a303b1ebad84892872717c0092852921/lib/internal/cluster/primary.js">https://github.com/nodejs/node/blob/7397c7e4a303b1ebad84892872717c0092852921/lib/internal/cluster/primary.js</a></p>
+</blockquote>
+<p>可以看到，当我们执行 <code>cluster.fork</code> 时，一开始会调用 <code>setupPrimary</code> 方法，创建主进程。因为这个方法是通过 <code>cluster.fork</code> 调用，因此会调用多次，但该模块有个全局变量 <code>initialized</code> 用于区分是否为首次创建，如果是首次则进行创建，如果不是则跳过。代码如下：<br />               <img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1618838827871-b8222a8e-ebe8-4fc2-a0da-20e421a77d9e.png#clientId=u7f471342-e022-4&amp;from=paste&amp;height=258&amp;id=u861d27c6&amp;name=image.png&amp;originHeight=516&amp;originWidth=1296&amp;originalType=binary&amp;ratio=1&amp;size=107800&amp;status=done&amp;style=none&amp;taskId=u2763db2a-d6c9-4ab8-93dd-169a68089a6&amp;width=648" alt="image.png" /><br />而  <code>cluster.fork</code> 方法，其实也很简单，具体代码如下：<br />              <img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1618839042529-ec225098-fd5d-4a9f-8258-aeb7b6827dd0.png#clientId=u7f471342-e022-4&amp;from=paste&amp;height=384&amp;id=ued1fad08&amp;name=image.png&amp;originHeight=768&amp;originWidth=1260&amp;originalType=binary&amp;ratio=1&amp;size=170944&amp;status=done&amp;style=none&amp;taskId=ud948b475-2948-4c62-8976-9d9842cff8c&amp;width=630" alt="image.png" /><br />首先是进程进程的初始化，也就是创建 master。然后就是进行id的递增，再创建 worker 子进程。而在 <code>createWorkerProcess</code> 方法中，实际是使用 <code>child_process</code> 来创建子进程的。</p>
+<p>需要注意的是，在初始化代码时，我们调用了两次 <code>cluster.fork</code> 方法，因此会创建两个子进程，在创建后又会调用我们项目根目录下的 <code>cluster.js</code> 启动一个新实例，但此时 <code>cluster.isMaster</code> 为 false，因此会 <code>reuqire</code>到子进程的方法。</p>
+<p>且由于是 worker 进程，因此代码会<code>require(&#x27;./app.js&#x27;)</code>模块，在该模块中会监听具体的端口：<br />                   <img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1618841656732-a347e092-9c55-4b61-bbd3-25f6cf3d3c64.png#clientId=u7f471342-e022-4&amp;from=paste&amp;height=294&amp;id=u83915fcc&amp;name=image.png&amp;originHeight=588&amp;originWidth=1210&amp;originalType=binary&amp;ratio=1&amp;size=124836&amp;status=done&amp;style=none&amp;taskId=u0fc9ae2c-ceba-495b-8ace-0c9090b1a57&amp;width=605" alt="image.png" /><br />这里的 <code>server.listen</code> 会调用 <code>net</code> 模块中的 <code>listenInCluster</code> 方法，该方法中有一个关键信息：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1618841835848-d3623e88-8076-4d1f-a922-e88f2fb5547f.png#clientId=u7f471342-e022-4&amp;from=paste&amp;height=492&amp;id=ue6c3029b&amp;name=image.png&amp;originHeight=984&amp;originWidth=1582&amp;originalType=binary&amp;ratio=1&amp;size=215723&amp;status=done&amp;style=none&amp;taskId=uc5febabc-b6a5-4975-bbe6-b198610034e&amp;width=791" alt="image.png" /><br />上面代码中，首先判断是否为<strong>主进程</strong>，如果是就是<strong>真实的监听端口启动服务</strong>，而如果非主进程则调用 <code>internal/cluster/child</code>  中的<code>cluster._getServer</code>方法。</p>
+<p>然后就会通过一个<code>send</code>方法，如果监听到 <code>listening</code> 就发送一个 <code>messgae</code> 给主线程，而主线程同样的也有一个 <code>listening</code> 时间，监听到该事件后将子进程通过 <code>EventEmitter</code> 绑定到主进程上，这样就完成了主子进程的关联绑定，并且只监听了一个端口。而主子进程之间的通信方式，就是我们常说的 IPC 通信。<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1618842084917-26fa359d-d461-42b7-8faf-2417927ece06.png#clientId=u7f471342-e022-4&amp;from=paste&amp;height=312&amp;id=u6b17498a&amp;name=image.png&amp;originHeight=624&amp;originWidth=1396&amp;originalType=binary&amp;ratio=1&amp;size=147078&amp;status=done&amp;style=none&amp;taskId=u3d390777-fb40-4b14-8485-12d438cfaa2&amp;width=698" alt="image.png" /></p>
+<p>总结起来如下图所示：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1618924368949-8d5487aa-39b8-4644-821d-3e0e1cb86ad5.png#clientId=u00e4b072-6445-4&amp;from=paste&amp;height=1670&amp;id=ueff375cb&amp;name=image.png&amp;originHeight=1670&amp;originWidth=1460&amp;originalType=binary&amp;ratio=1&amp;size=197021&amp;status=done&amp;style=none&amp;taskId=u463a2351-8add-4733-86d3-db952c1de12&amp;width=1460" alt="image.png" /><br />（图转自：<a href="https://github.com/chyingp/nodejs-learning-guide/blob/master/%E6%A8%A1%E5%9D%97/cluster.md">https://github.com/chyingp/nodejs-learning-guide/blob/master/%E6%A8%A1%E5%9D%97/cluster.md</a>）</p>
+<h2>3.2、负载均衡原理</h2>
+<p>cluster 模块进行负载均衡处理，主要涉及两个模块：</p>
+<ul>
+<li>round robin handle.js  此模块是针对于非 Windows 平台应用的模式，主要的做法是轮询处理，也就是轮询调度分发给空闲的子进程，处理完成后回到 worker 空闲池中。需要注意的是如果已经完成绑定了子进程，就会复用该子进程，如果没有就会重新进行判断。</li>
+<li>shared handle.js 此模块针对 Windows 平台应用的模式，通过将文件描述符、端口等信息传递给子进程，子进程通过复写掉 <code>cluster._getServer</code> 方法，从而在 <code>server.listen</code> 中保证只有主进程监听端口，主子进程通过 IPC 进程通信，其次主进程根据平台或者协议不同，应用不同模块来进行分发请求给子进程处理。</li>
+</ul>
+<h1>参考资料</h1>
+<ol>
+<li><a href="https://github.com/chyingp/nodejs-learning-guide/blob/master/%E6%A8%A1%E5%9D%97/cluster.md">https://github.com/chyingp/nodejs-learning-guide/blob/master/%E6%A8%A1%E5%9D%97/cluster.md</a></li>
+<li><a href="http://nodejs.cn/api/cluster.html">http://nodejs.cn/api/cluster.html</a></li>
+<li><a href="https://www.cnblogs.com/dashnowords/p/10958457.html">https://www.cnblogs.com/dashnowords/p/10958457.html</a></li>
+<li><a href="https://juejin.cn/post/6844903764093042695">https://juejin.cn/post/6844903764093042695</a></li>
+</ol>
+]]></content><link href="https://github.com/srtian/Blog/issues/27" rel="alternate"/><category term="Top"/><category term="Node"/><published>2023-03-02T09:36:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/26</id><title>《领域驱动设计》</title><updated>2023-03-02T09:37:45.083893+00:00</updated><content type="html"><![CDATA[<p>之前在接手BPM的工作时，被大佬推荐学习一下领域驱动设计，因此花了不少时间阅读了 Eric 的这本经典著作，不少章节翻了很多次，也有不少章节则选择性的放弃了（有一说一，很多模式实在不太理解），自我感觉总结起来主要有两点核心的思想：</p>
 <ol>
 <li>创造统一语言：领域专家和开发人员用同一语言讨论问题，术语和概念相统一。</li>
 <li>模型驱动开发：模型和代码相统一，并对数据的更改进行收敛以及限制。</li>
@@ -71,7 +130,7 @@
 <li>策略：是对于事件的响应，通常表示不属于某些聚集的逻辑，通过策略可以触发新的命令，而由策略触发的命令，被称为系统触发命令。</li>
 </ul>
 <p>而通过事件建模建立起的模型，我们就可以通过不断的事件风暴以及实践，去对事件进行收敛，从而提升我们的模型。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/26" rel="alternate"/><category term="Notes"/><category term="Basis"/><published>2023-03-02T09:34:40+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/25</id><title>《白帽子讲安全》</title><updated>2023-03-02T09:35:07.413046+00:00</updated><content type="html"><![CDATA[<h1>结构：</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/26" rel="alternate"/><category term="Notes"/><category term="Basis"/><category term="Top"/><published>2023-03-02T09:34:40+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/25</id><title>《白帽子讲安全》</title><updated>2023-03-02T09:37:45.260954+00:00</updated><content type="html"><![CDATA[<h1>结构：</h1>
 <p><img src="https://cdn.nlark.com/yuque/0/2022/jpeg/296173/1655191089154-1918e60a-b4f9-465e-8066-4cfc3d047347.jpeg" alt="" /></p>
 <h1>一、安全世界观</h1>
 <p><strong>安全问题的本质的信任的问题</strong>。</p>
@@ -152,7 +211,7 @@ Secure By DefauIt原则，最为基本的原则，<ol>
 <li>获取用户的真实IP地址：JavaScript本身并没有提供获取本地IP地址的能力，有没有其他办法？一般来说，XSS攻击需要借助第三方软件来完成。比如，客户端安装了Java环境（JRE），那么XSS就可以通过调用Java Applet的接口获取客户端的本地IP地址。</li>
 <li>XSS Worm</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/25" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:33:51+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/24</id><title>《远见》</title><updated>2023-03-02T09:35:07.569967+00:00</updated><content type="html"><![CDATA[<p>职业生涯是长期的，可以分为三个阶段：</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/25" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:33:51+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/24</id><title>《远见》</title><updated>2023-03-02T09:37:45.545836+00:00</updated><content type="html"><![CDATA[<p>职业生涯是长期的，可以分为三个阶段：</p>
 <ol>
 <li>初期，积攒燃料，补足短板</li>
 <li>中期，发挥长板，合作共赢</li>
@@ -195,7 +254,7 @@ Secure By DefauIt原则，最为基本的原则，<ol>
 </li>
 </ol>
 <p>我们总是会低估在未来才能兑现的好处，这种现象被称为‘时间贴现’（temporal discounting）。我们都不愿意用当前的痛苦，比如更辛苦的工作、更低的薪水、更低的声望等，来换取未来的某样东西，即使未来的好处其实更加丰厚。作为人类，我们本能地不相信未来的好处能够兑现，所以会在当前对它们打很大的折扣。”克里斯还在观察中发现了“损失厌恶”（loss aversion）的效应：“人们对后果和风险看得比好的方面更加清楚。我们的美梦很模糊，但噩梦却很清晰。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/24" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:33:03+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/23</id><title>重学前端之语义化</title><updated>2023-03-02T09:35:07.701098+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/24" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:33:03+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/23</id><title>重学前端之语义化</title><updated>2023-03-02T09:37:45.723717+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>本来很早前我就自认为对前端语义化有了一些了解，但在看完winter大大的专栏后才发现，自己对语义化的理解并不是很透彻，只存在于表面的理解而已，因此决定在学习winter老师的专栏后结合自己的一些理解，好好对其进行进行一个总结。</p>
 <h3>一、语义化是什么</h3>
 <p>从维基百科所得到的结果：</p>
@@ -296,7 +355,7 @@ Secure By DefauIt原则，最为基本的原则，<ol>
 <li><a href="https://www.zhihu.com/question/20455165">https://www.zhihu.com/question/20455165</a></li>
 <li><a href="https://time.geekbang.org/column/intro/154">https://time.geekbang.org/column/intro/154</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/23" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:32:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/22</id><title>重学前端之JavaScript语法</title><updated>2023-03-02T09:35:08.132396+00:00</updated><content type="html"><![CDATA[<h1>一、脚本与模块</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/23" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:32:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/22</id><title>重学前端之JavaScript语法</title><updated>2023-03-02T09:37:45.872406+00:00</updated><content type="html"><![CDATA[<h1>一、脚本与模块</h1>
 <p>JavaScript中又两种源文件，这个区分从ES6开始：</p>
 <ul>
 <li>脚本</li>
@@ -327,7 +386,7 @@ import d, * as x from &quot;./a.js&quot;
 </code></pre>
 <p>需要注意的是使用没使用 as 的默认值永远在最前，且这里的as只是换一个名字而已，当变量被改变的时候，as所产生的值也会随着改变。</p>
 <h3>export</h3>
-]]></content><link href="https://github.com/srtian/Blog/issues/22" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:31:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/21</id><title>重学前端之JavaScript类型</title><updated>2023-03-02T09:35:08.264228+00:00</updated><content type="html"><![CDATA[<p>按照JavaScript最新标准，一共定义了7种数据类型：</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/22" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:31:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/21</id><title>重学前端之JavaScript类型</title><updated>2023-03-02T09:37:46.035264+00:00</updated><content type="html"><![CDATA[<p>按照JavaScript最新标准，一共定义了7种数据类型：</p>
 <ol>
 <li>Undefined；</li>
 <li>Null；</li>
@@ -374,7 +433,7 @@ import d, * as x from &quot;./a.js&quot;
 <li>Symbol。</li>
 </ul>
 <p>需要注意的是， 3 与 new Number(3)是完全不一样的，一个是Number类型一个是对象类型。而Number、String 和 Boolean这三个构造器也是两用的，当和new搭配时，会产生对象，当直接调用时，会进行强制类型转换。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/21" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:31:15+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/20</id><title>重学前端之JavaScript执行</title><updated>2023-03-02T09:35:08.368151+00:00</updated><content type="html"><![CDATA[<p>一个JavaScript引擎会常驻内存中，它等待着我们把JavaScript代码或者函数传递给它。</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/21" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:31:15+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/20</id><title>重学前端之JavaScript执行</title><updated>2023-03-02T09:37:46.213643+00:00</updated><content type="html"><![CDATA[<p>一个JavaScript引擎会常驻内存中，它等待着我们把JavaScript代码或者函数传递给它。</p>
 <p>按照JSC引擎术语，我们把宿主发起的任务称为宏观任务，将JavaScript引擎发起的任务称为微观任务。</p>
 <h2>一、宏观任务和微观任务</h2>
 <p>JavaScript 引擎等待宿主环境分配宏观任务，在操作系统中，通常等待的行为都是一个事件循环，因此在 Node 术语中，也会把这个部分称为事件循环。</p>
@@ -472,7 +531,7 @@ async function foo*(){
 <p>任何 JavaScript 语句是可以加标签的，在语句前加冒号即可</p>
 <pre><code class="language-javascript"> firstStatement: var i = 1;
 </code></pre>
-]]></content><link href="https://github.com/srtian/Blog/issues/20" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:30:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/19</id><title>重学前端之JavaScript对象</title><updated>2023-03-02T09:35:08.468287+00:00</updated><content type="html"><![CDATA[<h2>一、基于对象的JavaScript</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/20" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:30:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/19</id><title>重学前端之JavaScript对象</title><updated>2023-03-02T09:37:46.422376+00:00</updated><content type="html"><![CDATA[<h2>一、基于对象的JavaScript</h2>
 <p>JavaScript是一门基于对象的编程语言，其标准对基于对象的定义如下：</p>
 <blockquote>
 <p>语言和宿主的基础设施由对象来提供，并且 JavaScript 程序即是一系列互相通讯的对象集合”</p>
@@ -735,7 +794,7 @@ o.getValue(); //100
 <li>类型数组和数组缓冲区：跟内存块相关联，下标运算比较特殊。</li>
 <li>bind 后的 function：跟原来的函数相关联。</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/19" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:30:02+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/18</id><title>《写给大家看的色彩书：设计配色基础》</title><updated>2023-03-02T09:35:08.597356+00:00</updated><content type="html"><![CDATA[<p>《写给大家看的色彩书：设计配色基础》国内著名由设计师梁景红编写，主要谈及配色的基础技巧和必备理念。非常适合初学配色的专业人士来学习。仔细阅读此书后，我对配色有了非常全面的认识，也巩固了之前零散的色彩知识。很希望和大家交流分享。<br />这是一本非常不错的配色入门书，从色彩最基础的知识点讲起，逐渐深入到专业的理论，层层递进。配合相应的案例，虽然大部分在讲理论，却也一点都不枯燥。</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/19" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:30:02+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/18</id><title>《写给大家看的色彩书：设计配色基础》</title><updated>2023-03-02T09:37:46.621469+00:00</updated><content type="html"><![CDATA[<p>《写给大家看的色彩书：设计配色基础》国内著名由设计师梁景红编写，主要谈及配色的基础技巧和必备理念。非常适合初学配色的专业人士来学习。仔细阅读此书后，我对配色有了非常全面的认识，也巩固了之前零散的色彩知识。很希望和大家交流分享。<br />这是一本非常不错的配色入门书，从色彩最基础的知识点讲起，逐渐深入到专业的理论，层层递进。配合相应的案例，虽然大部分在讲理论，却也一点都不枯燥。</p>
 <p>之前都认为，配色只是一种感觉，只要根据常识和已有的审美走就可以了。其实不然，学习了解专业的理论知识，不仅能让你在配色过程中更加有自信，而且可以举一反三，从现有的经验推导至未知的领域，如果在工作上遇到以前没有接触过的内容，也可以轻松入手。</p>
 <p>本书的主要内容包括：<br />1.颜色的基础只是，配色基础原则：不超过三种颜色<br />2.主色、辅色、点缀色的使用<br />3.色彩集合：图像、文字、图案、图表都可以看成一种颜色<br />4.在不确定的时候，使用黑、白、灰调色<br />5.基础色调：相近色调或对比色调<br />6.根据色彩情感的关键词，选择主色<br />7.根据关键词选择色调，避开主色谈配色<br />8.色彩素材的实践运用：提取色彩——分析色彩——实践运用<br />9.突破对立色彩感受：从一端到另一端</p>
 <p><strong>chapter1</strong><br /><strong>色彩基础，让你拥有一个清晰的色彩概念</strong>：使用H（色相）S（饱和度）B（明度）的色相环调色</p>
@@ -803,7 +862,7 @@ o.getValue(); //100
 <p>**</p>
 <p><strong>chapter9突破对立色彩的感受：从一端到另一端的选择</strong><br /><strong>搭配出一种情感效果，很可能就无法得到另一种情感效果，在这种情况下就要合适的取舍，明确具体的配色目的。</strong><br /><strong>同样是浊色➕明色，不同的颜色搭配，可以得出不同情感的颜色搭配效果。可以是活泼的，可以是平静的，也可以平时，华丽的。</strong><br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910153027-db451be0-0970-40ea-8f59-3245d0972894.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=u1eb6f1ef&amp;name=image.png&amp;originHeight=466&amp;originWidth=770&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=307472&amp;status=done&amp;style=none&amp;taskId=u35601eab-b6d3-4d7d-92fd-bf99d489b42&amp;title=" alt="image.png" /></p>
 <p>最后：<br />色彩有冷暖之分，有性别之分，也有不同的感情基调。所以把色彩也当成有灵魂的“人”，在搭配的过程中，时时刻刻考虑到不同的色彩搭配在一起要“和谐相处”，才能构建出和谐的画面。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/18" rel="alternate"/><category term="Web"/><category term="产品"/><published>2023-03-02T09:28:33+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/17</id><title>关于B端产品的一些思考以及体会</title><updated>2023-03-02T09:35:08.716259+00:00</updated><content type="html"><![CDATA[<p>这半年来，由于某些原因，我在开发之余，也承担了平台前端产品需求的挖掘，设计和梳理的工作，也做成了诸如公开数据集模块，模型自动化等需求的前端交互设计或者是总体的业务流程设计，有些还挺不错，受到了一些好评。做着做着就由感而发，也对B端的产品设计有了一些自己的思考，因此总结一下这半年来，在这方面的体会以及心路历程。</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/18" rel="alternate"/><category term="Web"/><category term="产品"/><published>2023-03-02T09:28:33+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/17</id><title>关于B端产品的一些思考以及体会</title><updated>2023-03-02T09:37:46.790030+00:00</updated><content type="html"><![CDATA[<p>这半年来，由于某些原因，我在开发之余，也承担了平台前端产品需求的挖掘，设计和梳理的工作，也做成了诸如公开数据集模块，模型自动化等需求的前端交互设计或者是总体的业务流程设计，有些还挺不错，受到了一些好评。做着做着就由感而发，也对B端的产品设计有了一些自己的思考，因此总结一下这半年来，在这方面的体会以及心路历程。</p>
 <h2>一、AI 产品的不确定性</h2>
 <p>相较于传统的B端产品，AI平台最大的特点就是不确定，这个不确定表现在很多方面。譬如：</p>
 <ul>
@@ -857,7 +916,7 @@ o.getValue(); //100
 <li>文字 or 邮件关怀</li>
 <li>图形</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/17" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:47+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/16</id><title>关于 BPM 的一些记录与思考</title><updated>2023-03-02T09:35:08.846502+00:00</updated><content type="html"><![CDATA[<h1>BPMN2 及相关概念</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/17" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:47+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/16</id><title>关于 BPM 的一些记录与思考</title><updated>2023-03-02T09:37:46.947954+00:00</updated><content type="html"><![CDATA[<h1>BPMN2 及相关概念</h1>
 <p>去年刚入职的时候，学习了 AWS 的关于 BPMN2 的一些文档，输出一下自己对于文档的理解：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1622973941077-4798449f-2c53-465d-8e83-17e0dd2e48a7.png#clientId=ud374fb22-d32f-4&amp;from=paste&amp;height=500&amp;id=uec962f42&amp;name=image.png&amp;originHeight=744&amp;originWidth=2356&amp;originalType=binary&amp;ratio=1&amp;size=298008&amp;status=done&amp;style=none&amp;taskId=ue26f5275-bf9c-4914-a7f9-16be68b24f6&amp;width=1583" alt="image.png" /></p>
 <h1>流程</h1>
 <h2>流程是什么？</h2>
@@ -888,7 +947,7 @@ o.getValue(); //100
 <li>客户：在新的流程体系里，一切流程都是面向客户的，反思流程是否走完了全过程，实现了客户的价值与要求（需要回答两个问题：1. 对客户要有清晰的认知，客户是谁？客户端的需求是什么？2.用什么去实现客户价值）</li>
 </ol>
 <p>从上述必要构成出发，从领域驱动设计的角度来讲，我们对于一个流程的模型，或许可以如此抽象：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1624416125530-6d61e184-1a47-43e3-98d6-5e2308d0ad92.png#clientId=uc9de569a-6de0-4&amp;from=paste&amp;height=954&amp;id=ufd557560&amp;name=image.png&amp;originHeight=954&amp;originWidth=2090&amp;originalType=binary&amp;ratio=1&amp;size=126280&amp;status=done&amp;style=none&amp;taskId=udd88226e-99f5-48c5-b212-be8e0852401&amp;width=2090" alt="image.png" /></p>
-]]></content><link href="https://github.com/srtian/Blog/issues/16" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:22+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/15</id><title>浅谈 Rust 前端应用开发</title><updated>2023-03-02T09:35:08.964647+00:00</updated><content type="html"><![CDATA[<p>随着技术的不断演进，近年来愈来越多的非前端开发语言诸如：Rust、Go 等也开始进入前端/跨端应用开发领域，并收获了不小的开源社区的关注。因此本次在此尝试对基于 Rust 的一些 前端/跨端 应用开发进行一些分析，来分析一下这种开发模式的技术基础、基本方案等情况，由于篇幅原因将分为两部分：第一部分，主要讨论 Rust 前端应用开发的基本现状、原理以及收益等，而第二部分则会讨论号称 Electron 终结者的 Tauri 的基本情况、最大卖点、基本架构组成等。
+]]></content><link href="https://github.com/srtian/Blog/issues/16" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:22+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/15</id><title>浅谈 Rust 前端应用开发</title><updated>2023-03-02T09:37:47.095897+00:00</updated><content type="html"><![CDATA[<p>随着技术的不断演进，近年来愈来越多的非前端开发语言诸如：Rust、Go 等也开始进入前端/跨端应用开发领域，并收获了不小的开源社区的关注。因此本次在此尝试对基于 Rust 的一些 前端/跨端 应用开发进行一些分析，来分析一下这种开发模式的技术基础、基本方案等情况，由于篇幅原因将分为两部分：第一部分，主要讨论 Rust 前端应用开发的基本现状、原理以及收益等，而第二部分则会讨论号称 Electron 终结者的 Tauri 的基本情况、最大卖点、基本架构组成等。
 <a name="rwzVM"></a></p>
 <h1>一、兴起的基础</h1>
 <p>对于前端应用开发有一定了解的同学应该知道，可以在浏览器端运行的编程语言主要有两种：</p>
@@ -1004,7 +1063,7 @@ pub struct Element {
 <li><a href="https://rustwasm.github.io/docs/book/introduction.html">https://rustwasm.github.io/docs/book/introduction.html</a></li>
 <li><a href="https://webassembly.org/docs/security/">https://webassembly.org/docs/security/</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/15" rel="alternate"/><category term="Rust"/><published>2023-03-02T09:25:44+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/14</id><title>浅谈 Rust 所有权机制</title><updated>2023-03-02T09:35:09.141032+00:00</updated><content type="html"><![CDATA[<h1>一、什么是 stack 和 heap</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/15" rel="alternate"/><category term="Top"/><category term="Rust"/><published>2023-03-02T09:25:44+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/14</id><title>浅谈 Rust 所有权机制</title><updated>2023-03-02T09:37:47.351868+00:00</updated><content type="html"><![CDATA[<h1>一、什么是 stack 和 heap</h1>
 <p>stack 和 heap 都用于变量的内存存储。对于大多数的编程人员来讲，都无需去关心内存是如何分配到 heap 和 stack 中的（实际上，对于 stack   和 heap 的区别，也很多人并不是很清楚）。譬如在JavaScript中，大多数人知道一个结论：基本数据类型放在 stack 中，而引用数据类型放在 heap 里面。但一旦问到，为何需要这样进行划分的时候，少有人可以说上一二。</p>
 <p>那它们到底有什么区别呢？ 首先它们虽然都是可供代码使用的内存，但结构是不同的。 stack是一个线性的数据结构，以放入值得顺序存储值并以相反的顺序取出值，也就是我们常说的：后进先出。其数据的输入和取出，则通常被称为 进栈、出栈。由于 <code>stack</code>是线性的数据结构，所以 stack 中的所有数据都是必须占用<strong>已知且固定</strong>的大小。</p>
 <p>而 heap 则是一个非线性的数据结构，是缺乏组织的。因此对于一些在初始时，大小未知或大小可能发生变化的数据，则可以放在堆中。当我们想要在堆中存储一些数据时，我们通常其实是请求一块大小合适的空间，然后操作系统在堆中搜索一个足够大的空间以匹配我们所请求的内存量，并将其标记为已用，并返回一个表示该位置地址的 **指针， **而这个指针也通常被存在 stack 中。这个过程也就是 <strong>堆内存分配</strong>，也常被称为 <strong>内存分配。</strong></p>
@@ -1166,7 +1225,7 @@ fn main() {
 }
 </code></pre>
 <p>如此我们就能将借用的变量进行返回来。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/14" rel="alternate"/><category term="Rust"/><published>2023-03-02T08:09:43+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/13</id><title>产品可用性之容错处理设计及实践</title><updated>2023-03-02T09:35:09.298147+00:00</updated><content type="html"><![CDATA[<h2>一、为什么说容错处理很重要</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/14" rel="alternate"/><category term="Rust"/><published>2023-03-02T08:09:43+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/13</id><title>产品可用性之容错处理设计及实践</title><updated>2023-03-02T09:37:47.520368+00:00</updated><content type="html"><![CDATA[<h2>一、为什么说容错处理很重要</h2>
 <p>B端产品由于其自身就具有一定的业务复杂度以及上手成本，因此在可用性方面，做好容错处理至关重要。一个好的容错处理既可以有效的提升用户使用产品的顺畅程度以及使用效率，也可以避免一些产品设计不够完善的问题的暴露。<br />
 <br />下图是我在学习尼尔森十大可用性原则时所做的学习思维导图：<br /></p>
 <p><img src="https://cdn.nlark.com/yuque/0/2020/svg/296173/1591757022787-9e968925-89d4-4a08-ad73-1f24b61a8298.svg" alt="" />从上述的思维导图我们不难发现，尼尔森所强调的可用性原则里面，绝大部分其实都和容错处理息息相关。我个人理解，容错处理我们可以在一下几个方面进行设计：</p>
@@ -1219,7 +1278,7 @@ fn main() {
 <br />类似的例子还有很多，比如PS，LR等操作软件，也提供了历史记录的功能，可以轻松回退的相应的地方<br /></p>
 <h2>结语</h2>
 <p>上述只是我个人在实践过程中的一些体会以及方法论，因为大家的产品特征不同，所要解决的问题，目标用户群体也不同。因此在具体的设计时，要根据自身的特点，去因地制宜的设计合理的容错处理机制。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/13" rel="alternate"/><category term="Web"/><category term="产品"/><category term="Top"/><published>2020-06-10T07:07:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/12</id><title>简述JavaScript模块化编程</title><updated>2023-03-02T09:35:09.440617+00:00</updated><content type="html"><![CDATA[<h1>简述JavaScript模块化编程</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/13" rel="alternate"/><category term="Web"/><category term="产品"/><category term="Top"/><published>2020-06-10T07:07:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/12</id><title>简述JavaScript模块化编程</title><updated>2023-03-02T09:37:47.704894+00:00</updated><content type="html"><![CDATA[<h1>简述JavaScript模块化编程</h1>
 <p>在早期编写JavaScript时，我们只需在 script 标签内写入JavaScript的代码就可以满足我们对页面交互的需要了。但随着时间的推移，时代的发展，原本的那种简单粗暴的编写方式所带来的诸如逻辑混乱，页面复杂，可维护性差，全局变量暴露等问题接踵而至，前辈们为了解决这些问题提出了很种的解决方案，其中之一就是JavaScript模块化编程。总的来说，它有以下四种优点：<br /></p>
 <ol>
 <li>解决项目中的全局变量污染的问题。</li>
@@ -1574,7 +1633,7 @@ export { add as add1 } from ./example.js; //以add这个名称导入，再以add
 export *  from ./example.js;
 </code></pre>
 <p><br />// 最后求一波暑期前端实习的坑位-_-||</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/12" rel="alternate"/><category term="JavaScript"/><published>2020-04-07T07:51:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/11</id><title>聊一聊常见的浏览器端数据存储方案</title><updated>2023-03-02T09:35:09.637132+00:00</updated><content type="html"><![CDATA[<h3>前言：</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/12" rel="alternate"/><category term="JavaScript"/><published>2020-04-07T07:51:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/11</id><title>聊一聊常见的浏览器端数据存储方案</title><updated>2023-03-02T09:37:47.897541+00:00</updated><content type="html"><![CDATA[<h3>前言：</h3>
 <p>五一假期在撸代码的时候用到cookie，感觉对浏览器的数据存储方案不是很了解，因此又去翻了两本大头书中间的关于浏览器端数据存储的章节，同时去MDN逛了逛，又看了几篇文章，算是对浏览器的数据存储方案有了一个了解，在此总结一下！</p>
 <h2>浏览器存储</h2>
 <p>在浏览器端存储数据对我们是很有用，这相当于赋予浏览器记忆的功能，可以纪录用户的所有状态信息，增强用户体验。比如当纪录用户的登陆状态时，可以让用户能够更快的进行访问，而不是每次登陆时都需要去进行繁琐的操作。</p>
@@ -1816,7 +1875,7 @@ request.onupgradeneededd = function(e) {
 <h4>3. indexedDB受同源策略的限制</h4>
 <p>indexedDB使用同源原则，这意味着它把存储空间绑定到了创建它的站点的源（典型情况下，就是站点的域或是子域），所以它不能被任何其他源访问。要着重指出的一点是 IndexedDB 不适用于从另一个站点加载进框架的内容 (不管是 <frame> 还是 &lt;iframe>。这是一项安全措施。详情请看这个：<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=595307">https://bugzilla.mozilla.org/show_bug.cgi?id=595307</a></p>
 <p>除此之外，IndexedDB还存在诸如：不适合存储敏感数据，相较于web存储机制的操作更加复杂等问题，这都是我们在使用IndexedDB时需要考虑的。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/11" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T10:04:17+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/10</id><title>React高阶组件的那些事，了解一下？</title><updated>2023-03-02T09:35:09.817723+00:00</updated><content type="html"><![CDATA[<h4>前言</h4>
+]]></content><link href="https://github.com/srtian/Blog/issues/11" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T10:04:17+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/10</id><title>React高阶组件的那些事，了解一下？</title><updated>2023-03-02T09:37:48.072358+00:00</updated><content type="html"><![CDATA[<h4>前言</h4>
 <p>学习react已经有一段时间了，期间在阅读官方文档的基础上也看了不少文章，但感觉对很多东西的理解还是不够深刻，因此这段时间又在撸一个基于react全家桶的聊天App（现在还在瞎78写的阶段，在往这个聊天App这个方向写），通过实践倒是对react相关技术栈有了更为深刻的理解，而在使用react-redux的过程中，发现connect好像还挺有意思的，也真实感受到了高阶组件所带来的便利，出于自己写项目本身就是为了学习的目的，因此对高阶组件又进行了一番学习。写下这篇文章主要是对高阶组件的知识进行一个梳理与总结，如有错误疏漏之处，敬请指出，不胜感激。</p>
 <h2>初识高阶组件</h2>
 <p><em>要学习高阶组件首先我们要知道的就是高阶组件是什么，解决了什么样的问题。</em></p>
@@ -2039,7 +2098,7 @@ class HOC extends ... {
 <p>实际上我们不用自己来写getDisplayName这个函数，recompose 提供了这个函数，我们只要使用即可。</p>
 <h4>结尾语</h4>
 <p>我们其他要注意的就是<a href="https://react.bootcss.com/react/docs/higher-order-components.html">官方文档</a>所说的几个约定与相关规范，在此我就不一一赘述了，感兴趣的可以自己去看看。最后很感谢能看到这里的朋友，因为水平有限，如果有错误敬请指正，十分感激！</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/10" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T10:00:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/9</id><title> 从 HTML5 WebSocket 到 Socket.io</title><updated>2023-03-02T09:35:09.948399+00:00</updated><content type="html"><![CDATA[<h2>HTML5 WebSocket概述</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/10" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T10:00:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/9</id><title> 从 HTML5 WebSocket 到 Socket.io</title><updated>2023-03-02T09:37:48.287457+00:00</updated><content type="html"><![CDATA[<h2>HTML5 WebSocket概述</h2>
 <p>作为新一代的web标准，HTML5为我们提供了很多有用的东西，比如canvas，本地存储（已经分离出去了），多媒体编程接口，当然还有我们的WebSocket。WebSocket是HTML5开始提供的一种浏览器与服务器间进行全双工通讯（full-duplex）的网络技术，可以传输基于信息的文本和二进制的数据。它于2011年被IETF定为标准 RFC 6455，同时WebSocket API也被W3C定为标准。</p>
 <h2>一、WebSocket产生的背景</h2>
 <h3>1.黎明前的黑暗——实时web应用的需求</h3>
@@ -2205,7 +2264,7 @@ client.on(&#x27;disconnect&#x27;,function(){
 <pre><code class="language-JavaScript">import io from &#x27;socket.io-client&#x27;
 const socket = io(&#x27;ws://localhost:8080&#x27;)
 </code></pre>
-]]></content><link href="https://github.com/srtian/Blog/issues/9" rel="alternate"/><category term="FE"/><category term="Web"/><category term="JavaScript"/><published>2019-09-28T09:59:23+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/8</id><title>Redux 源码解读</title><updated>2023-03-02T09:35:10.075006+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/9" rel="alternate"/><category term="FE"/><category term="Web"/><category term="JavaScript"/><published>2019-09-28T09:59:23+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/8</id><title>Redux 源码解读</title><updated>2023-03-02T09:37:48.476078+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>作为React全家桶的一份子，Redux为react提供了严谨周密的状态管理。但Redux本身是有点难度的，虽然学习了React也有一段时间了，自我感觉算是入了门，也知道redux的大概流程。但其背后诸如creatstore,applymiddleware等API背后到底发生了什么事情，我其实还是不怎么了解的，因此最近花了几天时间阅读了Redux的源码，写下文章纪录一下自己看源码的一些理解。（redux4.0版本）</p>
 <h3>一、源码结构</h3>
 <p>Redux是出了名的短小精悍（恩，这个形容很贴切），只有2kb大小，且没有任何依赖。它将所有的脏活累活都交给了中间件去处理，自己保持着很好的纯洁性。再加上redux作者在redux的源码上，也附加了大量的注释，因此redux的源码读起来还是不算难的。</p>
@@ -2546,7 +2605,7 @@ export default function bindActionCreators(actionCreators, dispatch) {
 </code></pre>
 <h3>小节</h3>
 <p>看一遍redux，感觉设计十分巧秒，不愧是大佬的作品。这次看代码只是初看，往后随着自己学习的不断深入，还需多加研究，绝对还能得到更多的体会。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/8" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:58:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/7</id><title>深入理解 Redux 中间件——走马观花</title><updated>2023-03-02T09:35:10.234062+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/8" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:58:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/7</id><title>深入理解 Redux 中间件——走马观花</title><updated>2023-03-02T09:37:48.726675+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>最近几天对 redux 的中间件进行了一番梳理，又看了 redux-saga 的文档，和 redux-thunk 和 redux-promise 的源码，结合前段时间看的redux的源码的一些思考，感觉对 redux 中间件的有了更加深刻的认识，因此总结一下。</p>
 <h3>一、Redux中间件机制</h3>
 <p>Redux本身就提供了非常强大的数据流管理功能，但这并不是它唯一的强大之处，它还提供了利用中间件来扩展自身功能，以满足用户的开发需求。首先我们来看中间件的定义：</p>
@@ -2723,7 +2782,7 @@ function loadInitData(ip) {
 <li>《深入浅出React和Redux》</li>
 <li>《深入React技术栈》</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/7" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:56:41+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/6</id><title>初探 HTML5 Web Workers</title><updated>2023-03-02T09:35:10.354805+00:00</updated><content type="html"><![CDATA[<h3>一、Web Workers是什么</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/7" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:56:41+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/6</id><title>初探 HTML5 Web Workers</title><updated>2023-03-02T09:37:48.919303+00:00</updated><content type="html"><![CDATA[<h3>一、Web Workers是什么</h3>
 <blockquote>
 <p>Web Worker为Web内容在后台线程中运行脚本提供了一种简单的方法。线程可以执行任务而不干扰用户界面。此外，他们可以使用XMLHttpRequest执行 I/O (尽管responseXML和通道属性总是为空)。一旦创建， 一个worker 可以将消息发送到创建它的JavaScript代码, 通过将消息发布到该代码指定的事件处理程序 (反之亦然)。 —— MDN</p>
 </blockquote>
@@ -2851,7 +2910,7 @@ worker.postMessage({
 <li><a href="https://qiutc.me/post/the-multithread-in-javascript-web-worker.html">https://qiutc.me/post/the-multithread-in-javascript-web-worker.html</a></li>
 <li><a href="https://juejin.im/post/5a90233bf265da4e92683de3">https://juejin.im/post/5a90233bf265da4e92683de3</a></li>
 </ol>
-]]></content><link href="https://github.com/srtian/Blog/issues/6" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:54:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/5</id><title>浅谈HTTP缓存</title><updated>2023-03-02T09:35:10.497583+00:00</updated><content type="html"><![CDATA[<h3>一、HTTP缓存概述（HTTP Cache）</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/6" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:54:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/5</id><title>浅谈HTTP缓存</title><updated>2023-03-02T09:37:49.091387+00:00</updated><content type="html"><![CDATA[<h3>一、HTTP缓存概述（HTTP Cache）</h3>
 <p>要搞清楚HTTP缓存，首先当然是要搞清楚缓存是啥，按照MDN的描述，缓存是这样的：</p>
 <blockquote>
 <p>缓存是一种保存资源副本并在下次请求时直接使用该副本的技术。当 web 缓存发现请求的资源已经被存储，它会拦截请求，返回该资源的拷贝，而不会去源服务器重新下载。这样带来的好处有：缓解服务器端压力，提升性能(获取资源的耗时更短了)。对于网站来说，缓存是达到高性能的重要组成部分。缓存需要合理配置，因为并不是所有资源都是永久不变的：重要的是对一个资源的缓存应截止到其下一次发生改变（即不能缓存过期的资源）。</p>
@@ -2919,7 +2978,7 @@ cache-control: max-age=691200
 <li><a href="https://www.cnblogs.com/lyzg/p/5125934.html#_label3">https://www.cnblogs.com/lyzg/p/5125934.html#_label3</a></li>
 <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching_FAQ">https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching_FAQ</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/5" rel="alternate"/><category term="FE"/><category term="Web"/><category term="Basis"/><published>2019-09-28T09:52:53+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/4</id><title>五分钟，简单聊一聊React Component的发展历程</title><updated>2023-03-02T09:35:10.873720+00:00</updated><content type="html"><![CDATA[<h3>一、 前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/5" rel="alternate"/><category term="FE"/><category term="Web"/><category term="Basis"/><published>2019-09-28T09:52:53+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/4</id><title>五分钟，简单聊一聊React Component的发展历程</title><updated>2023-03-02T09:37:49.251592+00:00</updated><content type="html"><![CDATA[<h3>一、 前言</h3>
 <p>随着 react 最新的一个大版本中，给我们带来了 Hooks：<a href="https://reactjs.org/blog/2019/02/06/react-v16.8.0.html">React v16.8: The One With Hooks</a>，从而将 Function component 的能力提高了一大截，成功的拥有了可以与 Class component 抗衡的能力。但话说回来，虽然 Hooks 看起来很美好，最近也有不少文章都讲解了Hooks这一“黑魔法”，但技术的不断演进，本身就是一个解决以往所存在问题的过程，因此我个人认为着眼于现在，回望过去，去看一看 react component 的发展之路，去看看 Class component 以及 Function component 为什么会出现以及它们出现的意义，所要解决的问题，也对于我们全面了解 react 是很有帮助的。</p>
 <p>从 react component 的发展历程上来看，它主要是经历了一下三个阶段：</p>
 <ol>
@@ -3092,7 +3151,7 @@ export default MyComponent
 <li><a href="http://taobaofed.org/blog/2018/11/27/hooks-and-function-component/">http://taobaofed.org/blog/2018/11/27/hooks-and-function-component/</a></li>
 <li><a href="https://www.freecodecamp.org/news/this-is-why-we-need-to-bind-event-handlers-in-class-components-in-react-f7ea1a6f93eb/">https://www.freecodecamp.org/news/this-is-why-we-need-to-bind-event-handlers-in-class-components-in-react-f7ea1a6f93eb/</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/4" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:52:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/3</id><title>浅析 Rematch 源码</title><updated>2023-03-02T09:35:11.209600+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/4" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:52:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/3</id><title>浅析 Rematch 源码</title><updated>2023-03-02T09:37:49.420440+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>入职后公司用的技术栈还是 react，但状态管理由我原本熟悉的 redux 进化成了在 redux 基础上封装而成的 rematch。用起来也着实方便不少，减少了很多样板代码的编写，同时也不用引入中间件来管理异步请求了，但在用起来的过程中难免就会引起了我对 rematch 的一些小疑问：</p>
 <ul>
 <li>它是怎么封装 诸如action creator这些以往在 redux 中繁琐的“样本”代码的？</li>
@@ -3495,7 +3554,7 @@ export default function({
 <li><a href="https://juejin.im/post/5b13fe155188257d6c046728">Redux 源码解读</a></li>
 <li><a href="https://juejin.im/post/5b237569f265da59bf79f3e9">深入理解 Redux 中间件</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/3" rel="alternate"/><category term="FE"/><category term="JavaScript"/><category term="React"/><published>2019-09-28T09:41:20+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/2</id><title>《Don't Make Me Think》读书笔记</title><updated>2023-03-02T09:35:11.325985+00:00</updated><content type="html"><![CDATA[<h3>一、别让我思考</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/3" rel="alternate"/><category term="FE"/><category term="JavaScript"/><category term="React"/><published>2019-09-28T09:41:20+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/2</id><title>《Don't Make Me Think》读书笔记</title><updated>2023-03-02T09:37:49.603389+00:00</updated><content type="html"><![CDATA[<h3>一、别让我思考</h3>
 <p>网页的易用性最重要的一点就是无需用户去思考。这也代表着交互一般劲量趋向于简单化，平整化，以减少用户的认知负担，减少对用户的干扰。</p>
 <p>示例：亚马逊搜索没有提及一定要去搜索什么内容，只会对你所输入的进行分析，这样就会减少用户的思考的成本（淘宝也是如此，通过自然语言处理来对用户的输入进行分析）</p>
 <p>比较典型的地方：</p>
@@ -3653,7 +3712,7 @@ export default function({
 <li>容易从错误中恢复</li>
 <li>如有不确定，记得道歉</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/2" rel="alternate"/><category term="Notes"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:34:00+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/1</id><title>浅析浏览器进程发展历程</title><updated>2023-03-02T09:35:11.487416+00:00</updated><content type="html"><![CDATA[<h3>一、浏览器的多进程概括</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/2" rel="alternate"/><category term="Notes"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:34:00+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/1</id><title>浅析浏览器进程发展历程</title><updated>2023-03-02T09:37:49.791988+00:00</updated><content type="html"><![CDATA[<h3>一、浏览器的多进程概括</h3>
 <p>要想搞明白什么是浏览器的多进程，首先得知道什么是进程。按照维基百科的说法：</p>
 <blockquote>
 <p>进程是计算机中已运行程序的实体。进程是线程的容器，进程本身不运行。程序本身只是指令的集合，进程才是程序（指令）的真正运行。每个程序可以有多个进程，每个进程都有自己的资源。</p>
