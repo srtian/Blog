@@ -1,5 +1,435 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<feed xmlns="http://www.w3.org/2005/Atom"><id>https://github.com/srtian/Blog</id><title>RSS feed of srtian's Blog</title><updated>2023-03-02T09:38:48.853807+00:00</updated><author><name>srtian</name><email>shenruotian@gmail.com</email></author><link href="https://github.com/srtian/Blog"/><link href="https://raw.githubusercontent.com/srtian/Blog/master/feed.xml" rel="self"/><generator uri="https://lkiesow.github.io/python-feedgen" version="0.9.0">python-feedgen</generator><entry><id>https://github.com/srtian/Blog/issues/29</id><title>TypeScript小技巧记录</title><updated>2023-03-02T09:38:49.131674+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+<feed xmlns="http://www.w3.org/2005/Atom"><id>https://github.com/srtian/Blog</id><title>RSS feed of srtian's Blog</title><updated>2023-03-02T09:40:16.158215+00:00</updated><author><name>srtian</name><email>shenruotian@gmail.com</email></author><link href="https://github.com/srtian/Blog"/><link href="https://raw.githubusercontent.com/srtian/Blog/master/feed.xml" rel="self"/><generator uri="https://lkiesow.github.io/python-feedgen" version="0.9.0">python-feedgen</generator><entry><id>https://github.com/srtian/Blog/issues/31</id><title>React Hooks 不完全踩坑实践指南</title><updated>2023-03-02T09:40:16.662118+00:00</updated><content type="html"><![CDATA[<h2>前言</h2>
+<p>使用Hooks开发也有一年多了，期间踩了一些坑，也收获了一些体会，撑国庆有点时间小小的总结梳理了一下，后续有时间会一直补充。</p>
+<h1>一、常用的 Hook 以及它们的一些注意事项</h1>
+<h2>1.1 useState</h2>
+<p>useState 就不用多说了，它的作用就在于可以让函数式组件拥有状态。在使用它的时候，需要注意的是：<strong>永远不要将可以通过计算得到的值保存为 state</strong>。包括但不限于：</p>
+<ul>
+<li>从 props 传递而来的值，但不能直接使用，需要通过一些计算来对数据进行处理，才能进行使用。常见的场景为：前端实现的搜索，在保持搜索值 searchValue 的同时，还维护一个搜索后的列表 searchedList 的 state。实际上这个 searchedList 是不必要的，我们实际上只需要维护 searchValue 即可。</li>
+<li>从 URL、cookie、localStorage 中获取到的值，对于这些从前端存储中获取的，我们都应该是即用即取，而不是单独使用一个状态去将其维护起来。</li>
+</ul>
+<p>这样做的好处有：</p>
+<ol>
+<li><strong>保证了状态的最小化</strong>。一般情况下，状态的数量和代码的复杂程度是成正比的。当我们维护了很多的状态时，会需要注意各个状态之间的依赖关系，以及它们对于组件渲染的影响。因此，在一般情况下，保持状态的最小化，有利于我们写出易于维护的组件。</li>
+<li><strong>保持唯一数据源</strong>。这一点主要对应于我们上述所说的从前端存储以及url上获取的值转化为state，从而增加中间状态。我曾自身体会过以及多次见过，前端的状态来源于 url 或者 前端存储，但没有做好状态同步，而导致这些来源值变化时，前端组件维护的状态没有更新而导致的bug。因此，正确的方式应该是，直接从数据的来源获取数据，即去即用，做到数据源以及用数据的地方的双向同步即可。</li>
+</ol>
+<h2>1.2 useEffect</h2>
+<p>useEffect，顾名思义即执行副作用的地方。很多情况下，使用过 class 组件的同学会将其与 class 组件中的一些生命周期函数相绑定。但其实它的机制是不太一样的，class 组件的生命周期函数是按照一定的标准去顺序执行的，而 useEffect 则是每次组件 render 完后判断其 **依赖 **然后执行的。</p>
+<p>对于useEffect 的依赖，有以下几点可以参考的：</p>
+<ol>
+<li>单个useEffect 依赖的值别过多，一般最好别超过 5 个。因为一旦过多，就表示这个useEffect有频繁调用或者预料之外调用的风险。这时，我们可以考虑对无关状态进行剔除，以及相关状态的合并，以及对单个 useEffect 进行分离，让单个 useEffect 的职责变得更小。</li>
+<li>依赖项一般是一个常量数组，而不是一个变量，早创建回调时，就应该明确要依赖于哪些值了。</li>
+<li>依赖值定义的变量一定是会在回调函数中用到的。</li>
+<li>React 是用浅比较来对依赖项进行比较的，因此对于依赖项为数组或者对象的情况下，很容易出现bug。</li>
+</ol>
+<h2>1.3 useCallback 和 useMemo</h2>
+<p>我自己在面试时，很喜欢问一些熟悉 react 技术栈的同学一个问题：在函数式组件中，是否需要对那些 inline 的函数都套上一层 useCallback 来提升性能？有不少同学回答的是：是，需要。</p>
+<p>咋一看，因为react函数组件会在UI发生变化时重新执行一次。因此如果每次重新执行，都需要创建这些 inline 的函数，可能会对性能造成影响，因此需要用 useCallback 包上一层。但实际上，JavaScript对于创建函数式很快的（<a href="https://reactjs.org/docs/hooks-faq.html#are-hooks-slow-because-of-creating-functions-in-render">官方解释</a>），相反纯粹的给一个组件套上 useCallback 只会更慢，因此 inline 函数无论如何都会创建，useCallback还需要比较依赖项的变化。</p>
+<p>因此我们应该在以下一些场景下，才考虑使用 useCallback：</p>
+<ul>
+<li>该函数在初始化的时候需要大量的计算（这种场景极少）</li>
+<li>该函数会作为props传递给子组件供子组件使用（这种情况较多）</li>
+<li>该函数会作为其他 hooks 的依赖项（这种情况也较少）</li>
+</ul>
+<p>而 useMemo 也是用于缓存，和 useCallback 不同的是，useCallback 缓存的是函数引用，而useMemo则是缓存计算结果。通常用于：<strong>一个数据是根据其他数据计算而来的，且这个数据只有当其他数据发生变化时，发需要重新计算。</strong></p>
+<p>有意思的是，useCallback其实也可以通过useMemo来进行实现，因为它们本质上都是做同一件事情：<strong>建立一个结果和数据的依赖关系，只有依赖数据发生变化，结果才会发生改变。</strong></p>
+<pre><code class="language-typescript">const myUseCallback = useMemo(() =&gt; {
+  // 返回一个函数作为结果
+	return () =&gt; {}
+}, [deps])
+</code></pre>
+<h2>1.4 useRef</h2>
+<p>ref 是 react 中一直存在的。在class组件中，我们通常使用 createRef 来创建ref；而在函数组件中，我们则使用 useRef 来创建 ref。这会让人直观的感觉 useRef 就是 createRef 在函数组件的替代品，但其实它们还是存在差异的。useRef 的 current 像一个变量，其.current属性被初始化为传入的参数(initialValue)，返回的对象将在组件的整个生命周期内持续存在。而createRef 则会在每次渲染都会返回一个新的引用，而 useRef 每次都会返回相同的引用。因此，当我们使用 useRef 时，通常我们是需要在<strong>多次渲染之间共享一个数据</strong>；除此之外，也可用于保存某个 DOM 节点的引用，对某个节点去进行操作。</p>
+<p>至于其他需要注意的是：useRef 的内容发生变化时，它不会通知我们，且更改 current 属性也不会导致重新刷新，因为它只是一个引用而已。</p>
+<h1>二、自定义 Hook</h1>
+<p>自定义 hook 也是React开发中非常重要的一环。我们可以通过自定义hook来有效的提升我们代码的可复用性以及可维护性。在使用 hook 的过程中，我想大家不难发现，hook 带来的收益其实主要是在于两点：</p>
+<ol>
+<li>逻辑复用</li>
+<li>关注分离</li>
+</ol>
+<p>而自定义hook，其实也主要是集中于这两点来进行扩展开发的，其使用场景大体上也主要是以下两种场景：</p>
+<ol>
+<li>封装通用逻辑</li>
+<li>对复杂组件进行拆分</li>
+</ol>
+<h2>2.1 封装通用逻辑</h2>
+<p>对通用逻辑进行封装，是自定义 hook 中非常常见的一种使用场景。譬如说，我们以往在 class 组件中经常使用 componentDidUpdate 来实现组件更新是才需要触发的一些逻辑。然而在函数组件中，我们并不能直接使用 useEffect 来实现这个功能，因为 useEffect 的执行时和 render 相关联的，因此在组件初次渲染时也会执行。在这种情况下，我们就可以封装一个 useDidUpdate 来实现类似于 componentDidUpdate 的功能：</p>
+<pre><code class="language-typescript">const useDidUpdate = (callback: () =&gt; void, array: unknown[]) =&gt; {
+  const mounted = useRef(false);
+  useEffect(() =&gt; {
+    if (mounted.current) {
+      callback();
+    } else {
+      mounted.current = true;
+    }
+  }, [...array]);
+};
+</code></pre>
+<p>这是从通用逻辑的角度的自定义 hook 的封装，对于一些业务逻辑，我们同样也可以进行处理。譬如说在微前端方案中，主子应用的通信也是其中重要的一环，而 BPM 中单据的审批也需要主子应用进行通信，然后进行相应的回调函数的执行。考虑到这种情况，在经过一些调研后，我当时就选用了使用 <a href="https://developer.mozilla.org/zh-CN/docs/Web/API/CustomEvent">CustomEvent</a> 来作为我们主子应用的通信方案，用自定义 hook 便可对这种业务逻辑进行抽象，实现复用：</p>
+<pre><code class="language-typescript">import { useEffect } from &#x27;react&#x27;;
+
+type Options = boolean | AddEventListenerOptions;
+
+interface CustomEventParams&lt;T&gt; {
+  key: string;
+  callback?: (e: CustomEvent&lt;T&gt;) =&gt; void;
+  options?: Options;
+}
+/**
+ * @param key - 一个表示 event 名字的字符串
+ * @return callback: (data) =&gt; void
+ */
+export const useEmitter = &lt;T&gt;(key: string) =&gt; {
+  const callback = (data: T) =&gt; {
+    const event = new CustomEvent(key, { detail: data });
+    window.dispatchEvent(event);
+  };
+
+  return callback;
+};
+
+/**
+ * @param key - 一个表示 event 名字的字符串
+ * @param callback - 回调函数
+ * @param options - 可选参数
+ * @return void
+ */
+export const useListener = &lt;T&gt;(
+  key: string,
+  callback: (e: CustomEvent&lt;T&gt;) =&gt; void,
+  options: Options = {}
+) =&gt; {
+  useEffect(() =&gt; {
+    if (typeof callback === &#x27;function&#x27;) {
+      const fn = (e: Event) =&gt; {
+        callback(e as CustomEvent);
+      };
+
+      window.addEventListener(key, fn, options);
+
+      return () =&gt; window.removeEventListener(key, fn, options);
+    }
+  }, [key, callback, options]);
+};
+/**
+ * @param key - 一个表示 event 名字的字符串
+ * @param callback - 回调函数
+ * @param options - 可选参数
+ * @return useEmitter:（key: string）=&gt; callback
+ */
+export const useCustomEvent = &lt;T&gt;({ key, callback, options = {} }: CustomEventParams&lt;T&gt;) =&gt; {
+  let fn;
+  if (typeof callback === &#x27;function&#x27;) {
+    fn = callback;
+  } else {
+    fn = () =&gt; console.log(&#x27;no function&#x27;);
+  }
+  useListener&lt;T&gt;(key, fn, options);
+
+  return useEmitter&lt;T&gt;(key);
+};
+
+</code></pre>
+<p>大家看到以上主要有三个API组成：</p>
+<ul>
+<li>useEmitter</li>
+<li>useListener</li>
+<li>useCustomEvent</li>
+</ul>
+<p>其中，在BPM的业务场景中， useEmitter 单独使用的较少，而  useListener 则通常适用于监听业务方传递过来的相关消息，而 useCustomEvent 则主要使用于在 BPM 发出事件后，根据业务方的回传消息作出响应的场景。</p>
+<h2>2.2 对复杂组件进行拆分</h2>
+<p>我相信很多同学在接手一些老项目的代码时，时常会发现有些组件的代码量会超出自己的控制范围（譬如我接手的一个项目，一个组件写了7000行，里面嵌套的一个组件也有6000行）。这样的代码是非常不好维护的，因此保持每个组件的短小，是一个非常有用的最佳实践。</p>
+<p>那如何做到不让单个组件变得太过于冗余呢？其实做法很简单，就是尽量将相关的逻辑做成独立的 hooks，然后在函数组件中使用这些 Hooks。其实在 Vue 中也有类似的做法， Vue 的文档对于这种代码组织的方式介绍的很清楚，在这里我也就不做过多的赘述了：<a href="https://v3.vuejs.org/guide/composition-api-introduction.html#why-composition-api">why-composition-api </a>。其核心要点就在于，<strong>对单个大的组件，进行业务逻辑上的分离，将拥有共同逻辑的代码拆分为 hooks，从而降低代码的耦合程度，减少单个组件的代码量。</strong></p>
+<h1>三、其他</h1>
+<h2>3.1 使用 ESlint 插件监督 Hooks 的使用</h2>
+<p>由于 Hooks 是通过闭包和数组组成的环形链表来实现的，因此在开发过程中，我们也需要遵循一些开发规范才行，包括：</p>
+<ul>
+<li>在不能在条件语句、循环、return之后使用 hooks。</li>
+<li>hooks只能在函数组件以及自定义 hooks 中使用</li>
+<li>useEffect的回调函数使用的变量，都必须在依赖项中进行声明</li>
+</ul>
+<p>这些规范虽然我们都知道，但难免有时会忘记，因此我们可以通过 <a href="https://www.npmjs.com/package/eslint-plugin-react-hooks">eslint-plugin-react-hooks</a> 来检查我们 hooks的使用情况，在下载完这个插件后，直接在配置文件加上这两个配置即可：</p>
+<pre><code class="language-typescript">    &quot;react-hooks/exhaustive-deps&quot;: &quot;warn&quot;,
+    &quot;react-hooks/rules-of-hooks&quot;: &quot;error&quot;,
+</code></pre>
+<h2>3.2 自定义Hook注释</h2>
+<p>对于自定义的 hooks，在定义完后尽量加上较为完备的注释，注释的方式也推荐使用 ts doc 的格式去进行声明，这样一方面有利于后来的开发者（也可能是你自己）可以较快的明白这个自定义hook 所要完成的目的，另一方面也可能让你自己在写这个 hooks 的时候，可以二次思考这个 hooks 的入参和返回值是否合理。譬如说，上述的 useCustomEvent：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1633781378395-322dca49-ef98-4a6c-ad42-75852dd368ab.png#clientId=uee6368bf-bbf4-4&amp;from=paste&amp;height=349&amp;id=u72866a38&amp;name=image.png&amp;originHeight=1046&amp;originWidth=2518&amp;originalType=binary&amp;ratio=1&amp;size=267673&amp;status=done&amp;style=none&amp;taskId=u776a85b4-64c1-4e3a-9eff-23691f9278d&amp;width=839.3333333333334" alt="image.png" /><br />我们只需看注释即可只要这个hooks的入参以及返回值。</p>
+<p>参考资料：</p>
+<ul>
+<li><a href="https://overreacted.io/zh-hans/a-complete-guide-to-useeffect/">https://overreacted.io/zh-hans/a-complete-guide-to-useeffect/</a></li>
+<li><a href="https://time.geekbang.org/column/intro/100079901">https://time.geekbang.org/column/intro/100079901</a></li>
+<li><a href="https://v3.vuejs.org/guide/composition-api-introduction.html#why-composition-api">https://v3.vuejs.org/guide/composition-api-introduction.html#why-composition-api</a></li>
+<li><a href="https://reactjs.org/docs/hooks-faq.html#are-hooks-slow-because-of-creating-functions-in-render">https://reactjs.org/docs/hooks-faq.html#are-hooks-slow-because-of-creating-functions-in-render</a></li>
+</ul>
+]]></content><link href="https://github.com/srtian/Blog/issues/31" rel="alternate"/><category term="FE"/><category term="React"/><published>2023-03-02T09:40:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/30</id><title>七天学会Node.js——学习笔记</title><updated>2023-03-02T09:40:16.852329+00:00</updated><content type="html"><![CDATA[<p><img src="https://cdn.nlark.com/yuque/0/2020/svg/296173/1586333536866-f558ad17-fd98-42ff-980a-8fe22828c820.svg" alt="" /></p>
+<h2>一、模块</h2>
+<p>Node.js模块分为三种：</p>
+<ul>
+<li>require</li>
+<li>export</li>
+<li>module</li>
+</ul>
+<h3>1.1、require</h3>
+<p>require1函数用于在当前模块中加载和使用别的模块，传入一个模块名，返回一个模块导出对象。模块名可以使用相对路径（./）以及绝对路径（以<code>/</code>或<code>C:</code>之类的盘符开头）</p>
+<pre><code class="language-javascript">// foo1至foo4中保存的是同一个模块的导出对象
+var foo1 = require(&#x27;./foo&#x27;);
+var foo2 = require(&#x27;./foo.js&#x27;);
+var foo3 = require(&#x27;/home/user/foo&#x27;);
+var foo4 = require(&#x27;/home/user/foo.js&#x27;);
+</code></pre>
+<h3>1.2、export</h3>
+<p>export 对象是当前模块的导出对象，用于导出模块的共有方法和属性。别的模块通过require函数使用当前模块时得到的就是当前模块的export对象：</p>
+<pre><code class="language-javascript">exports.sayhai = () =&gt; {
+  console.log(&quot;hi, node&quot;);
+};
+console.log(1);
+</code></pre>
+<h3>1.3、module</h3>
+<p>通过module对象可以访问当前模块的一些相关信息，但用途最多的当属替换当前模块的导出对象：</p>
+<pre><code class="language-javascript">module.exports = function () {
+    console.log(&#x27;Hello node!&#x27;);
+};
+</code></pre>
+<p>以上代码，便将默认导出对象被替换为一个函数</p>
+<h3>1.4、模块初始化</h3>
+<p>一个模块的JS代码仅在模块第一次被使用时执行一次，并在执行过程中初始化模块的导出对象，之后，缓存起来的导出对象被重复利用</p>
+<pre><code class="language-javascript">// example.js
+let count = 0;
+
+const add = () =&gt; {
+  return ++count;
+};
+
+exports.add = add;
+
+// app.js
+var example1 = require(&#x27;./example&#x27;);
+var example2 = require(&#x27;./example&#x27;);
+
+console.log(example1.add());
+console.log(example2.add());
+console.log(example1.add());
+
+// 输出：1 2 3
+</code></pre>
+<p>由输出我们可以得出example.js并没有被require初始化两次。</p>
+<blockquote>
+<p>具体的关于模块的记录：<a href="https://www.yuque.com/srtian/fe/agw824#TZgDs">https://www.yuque.com/srtian/fe/agw824#TZgDs</a></p>
+</blockquote>
+<h2>二、代码的组织和部署</h2>
+<h3>2.1、模块路径解析规则</h3>
+<p>上面已经知晓，require函数支持相对路径以及绝对路径，但这两种路径在模块之间建立了强耦合关系，一旦某个文件存放位置需要变更，使用该模块的其他模块的代码也需要调整。因此，require函数支持第三种路径，类似于 <code>foo/bar</code> 并依次按照下列规则解析路径，直到找到模块位置。</p>
+<ol>
+<li>内置模块：如果传递给require函数的是Node.js的内置模块名称，不做路径解析，直接返回内部模块的导出对象</li>
+<li>node_modules目录：Node.js定义了一个特殊的 <code>node_modules</code> 目录存放模块。例如在该模块中使用<code>require(&#x27;foo/bar&#x27;)</code>方式加载模块时，则NodeJS依次尝试使用以下路径：</li>
+</ol>
+<pre><code class="language-javascript"> /home/user/node_modules/foo/bar
+ /home/node_modules/foo/bar
+ /node_modules/foo/bar
+</code></pre>
+<ol start="3">
+<li>NODE_PATH环境变量：与PATH环境变量类似，NodeJS允许通过NODE_PATH环境变量来指定额外的模块搜索路径。NODE_PATH环境变量中包含一到多个目录路径，路径之间在Linux下使用<code>:</code>分隔，在Windows下使用<code>;</code>分隔。例如定义了以下NODE_PATH环境变量：</li>
+</ol>
+<pre><code>NODE_PATH=/home/user/lib:/home/lib
+</code></pre>
+<p>当使用<code>require(&#x27;foo/bar&#x27;)</code>的方式加载模块时，则NodeJS依次尝试以下路径。</p>
+<pre><code>/home/user/lib/foo/bar
+/home/lib/foo/bar
+</code></pre>
+<h3>2.2、包</h3>
+<p>JS模块的基本单位是单个的JS文件，但复杂的模块往往会由多个子模块组成。为了方便管理以及使用，我们可以将多个子模块组成的大模块称之为包，并把所有子模块放在同一个目录里。</p>
+<p>在组成一个包的所有子模块中，需要有一个入口模块，入口模块的导出对象被称为包的导出对象：</p>
+<pre><code>- /home/user/lib/
+    - cat/
+        head.js
+        body.js
+        main.js
+</code></pre>
+<p>上面的cat目录就定义了一个包，包括三个自模块，main作为入口模块：</p>
+<pre><code class="language-javascript">var head = require(&#x27;./head&#x27;);
+var body = require(&#x27;./body&#x27;);
+
+exports.create = function (name) {
+    return {
+        name: name,
+        head: head.create(),
+        body: body.create()
+    };
+};
+</code></pre>
+<p>在其他模块中使用包的时候，就需要加载包的入口模块，使用<code>require(&#x27;/home/user/lib/cat/main&#x27;)</code>能达到目的，但是入口模块名称出现在路径里看上去不是个好主意。因此我们需要做点额外的工作，让包使用起来更像是单个模块。因此我们可以让模块的文件名为index.js，这样加载模块时可以使用模块所在目录的路径代替模块文件路径：</p>
+<pre><code class="language-javascript">// 等价的：
+var cat = require(&#x27;/home/user/lib/cat&#x27;);
+var cat = require(&#x27;/home/user/lib/cat/index&#x27;);
+</code></pre>
+<p>此外我们可以使用package.json文件来指定入口模块的路径，比如这样：</p>
+<pre><code>// 路径
+- /home/user/lib/
+    - cat/
+        + doc/
+        - lib/
+            head.js
+            body.js
+            main.js
+        + tests/
+        package.json
+
+// package.json
+{
+    &quot;name&quot;: &quot;cat&quot;,
+    &quot;main&quot;: &quot;./lib/main.js&quot;
+}
+</code></pre>
+<p>如此一来，就同样可以使用<code>require(&#x27;/home/user/lib/cat&#x27;)</code>的方式加载模块。NodeJS会根据包目录下的<code>package.json</code>找到入口模块所在位置。</p>
+<h3>2.3 NPM</h3>
+<p>NPM能解决很多Node.js代码部署上的问题，使用场景如下：</p>
+<ul>
+<li>允许用户从NPM服务器下载别人编写的三方包到本地使用。<br /></li>
+<li>允许用户从NPM服务器下载并安装别人编写的命令行程序到本地使用。<br /></li>
+<li>允许用户将自己编写的包或命令行程序上传到NPM服务器供别人使用。<br /></li>
+</ul>
+<p>npm常用命令：</p>
+<ul>
+<li>NPM提供了很多命令，例如install和publish，使用npm help可查看所有命令。</li>
+<li>使用npm help 可查看某条命令的详细帮助，例如npm help install。</li>
+<li>在package.json所在目录下使用npm install . -g可先在本地安装当前命令行程序，可用于发布前的本地测试。</li>
+<li>使用npm update 可以把当前目录下node_modules子目录里边的对应模块更新至最新版本。</li>
+<li>使用npm update  -g可以把全局安装的对应命令行程序更新至最新版。</li>
+<li>使用npm cache clear可以清空NPM本地缓存，用于对付使用相同版本号发布新版本代码的人。</li>
+<li>使用npm unpublish @可以撤销发布自己发布过的某个版本代码。</li>
+</ul>
+<h2>三、文件操作</h2>
+<h3>3.1、文件拷贝</h3>
+<h4>小文件拷贝</h4>
+<p>对于小文件的拷贝，我们可以使用fs.readFileSync从源路径读取内容，并使用fs.writeFileSync将文件内容写入目标路径。</p>
+<blockquote>
+<p><code>process</code>是一个全局变量，可通过<code>process.argv</code>获得命令行参数。由于<code>argv[0]</code>固定等于NodeJS执行程序的绝对路径，<code>argv[1]</code>固定等于主模块的绝对路径，因此第一个命令行参数从<code>argv[2]</code>这个位置开始。</p>
+</blockquote>
+<pre><code class="language-javascript">var fs = require(&#x27;fs&#x27;);
+
+function copy(src, dst) {
+    fs.writeFileSync(dst, fs.readFileSync(src));
+}
+
+function main(argv) {
+    copy(argv[0], argv[1]);
+}
+
+main(process.argv.slice(2));
+</code></pre>
+<h4>大文件拷贝</h4>
+<p>对于大文件，我们就不能一次将所有文件内容都读取到内存中然后一次写入磁盘，会导致内存爆仓。因此，我们只能读一点写一点，直到完成文件拷贝：</p>
+<pre><code class="language-javascript">var fs = require(&#x27;fs&#x27;);
+
+function copy(src, dst) {
+    fs.createReadStream(src).pipe(fs.createWriteStream(dst));
+}
+
+function main(argv) {
+    copy(argv[0], argv[1]);
+}
+
+main(process.argv.slice(2));
+</code></pre>
+<p>我们使用fs.createReadStream创建一个源文件的读取数据流，并使用fs.createWriteStream创建一个目标文件的只写数据流，并且用pipi方法将两个数据流连接起来。</p>
+<h3>3.2、API</h3>
+<h4>Buffer（数据块）</h4>
+<p><code>Buffer</code>将JS的数据处理能力从字符串扩展到了任意二进制数据</p>
+<pre><code class="language-javascript">var bin = new Buffer([ 0x68, 0x65, 0x6c, 0x6c, 0x6f ]);
+bin[0]; // =&gt; 0x68;
+var str = bin.toString(&#x27;utf-8&#x27;); // =&gt; &quot;hello&quot;
+var bin = new Buffer(&#x27;hello&#x27;, &#x27;utf-8&#x27;); // =&gt; &lt;Buffer 68 65 6c 6c 6f&gt;
+bin[0] = 0x48; //可更改
+
+// slice方法不会返回一个新Buffer，而更像是返回了指向原Buffer中间的某个位置的指针
+var bin = new Buffer([ 0x68, 0x65, 0x6c, 0x6c, 0x6f ]);
+var sub = bin.slice(2);
+sub[0] = 0x65;
+console.log(bin); // =&gt; &lt;Buffer 68 65 65 6c 6f&gt;
+
+// 拷贝Buffer
+var bin = new Buffer([ 0x68, 0x65, 0x6c, 0x6c, 0x6f ]);
+var dup = new Buffer(bin.length);
+bin.copy(dup);
+dup[0] = 0x48;
+console.log(bin); // =&gt; &lt;Buffer 68 65 6c 6c 6f&gt;
+console.log(dup); // =&gt; &lt;Buffer 48 65 65 6c 6f&gt;
+</code></pre>
+<h4>Stream（数据流）</h4>
+<p>当内存中无法一次装下需要处理的数据，或者一边读取一边处理更加高效时，我们就需要使用数据流。NodeJS中通过各种<code>Stream</code>来提供对数据流的操作。<code>Stream</code>基于事件机制工作，所有<code>Stream</code>的实例都继承于NodeJS提供的<a href="http://nodejs.org/api/events.html">EventEmitter</a>。</p>
+<pre><code class="language-javascript">var rs = fs.createReadStream(src);
+var ws = fs.createWriteStream(dst);
+rs.on(&#x27;data&#x27;, function (chunk) {
+    if (ws.write(chunk) === false) {
+        rs.pause();
+    }
+});
+rs.on(&#x27;end&#x27;, function () {
+    ws.end();
+});
+// 根据drain事件来判断什么时候只写数据流已经将缓存中的数据写入目标
+ws.on(&#x27;drain&#x27;, function () {
+    rs.resume();
+});
+</code></pre>
+<h4>File System（文件系统）</h4>
+<p><code>fs</code>模块提供的API基本上可以分为以下三类：</p>
+<ul>
+<li>文件属性读写。<br />其中常用的有<code>fs.stat</code>、<code>fs.chmod</code>、<code>fs.chown</code>等等。<br /></li>
+<li>文件内容读写。<br />其中常用的有<code>fs.readFile</code>、<code>fs.readdir</code>、<code>fs.writeFile</code>、<code>fs.mkdir</code>等等。<br /></li>
+<li>底层文件操作。<br />其中常用的有<code>fs.open</code>、<code>fs.read</code>、<code>fs.write</code>、<code>fs.close</code>等等。</li>
+</ul>
+<p>基本上所有fs模块API的回调参数都有两个：</p>
+<ol>
+<li>第一个参数在有错误发生时等于异常对象</li>
+<li>第二个参数始终用于返回API方法执行结果</li>
+</ol>
+<p>fs模块所有 API 都有对应的同步版本，用于无法使用异步操作，或者图标操作跟为方便的情况下使用，主要区别是：</p>
+<ul>
+<li>同步API除了方法名的末尾多了一个<code>Sync</code></li>
+<li>异常对象与执行结果的传递方式不一样</li>
+</ul>
+<pre><code class="language-javascript">try {
+    var data = fs.readFileSync(pathname);
+    // Deal with data.
+} catch (err) {
+    // Deal with error.
+}
+</code></pre>
+<h4>Path（路径）</h4>
+<p>NodeJS提供了<code>path</code>内置模块来简化路径相关操作，并提升代码可读性:</p>
+<pre><code class="language-javascript">var cache = {};
+  function store(key, value) {
+    // 将传入的路径转换为标准路径
+      cache[path.normalize(key)] = value;
+  }
+  store(&#x27;foo/bar&#x27;, 1);
+  store(&#x27;foo//baz//../bar&#x27;, 2);
+  console.log(cache);  // =&gt; { &quot;foo/bar&quot;: 2 }
+
+// 将传入的多个路径拼接为标准路径
+path.join(&#x27;foo/&#x27;, &#x27;baz/&#x27;, &#x27;../bar&#x27;); // =&gt; &quot;foo/bar&quot;
+// 获取扩展名
+ path.extname(&#x27;foo/bar.js&#x27;); // =&gt; &quot;.js&quot;
+</code></pre>
+<h2>四、网络操作</h2>
+<p>NodeJS内置了 <code>http</code> 模块，可以让我们实现一个简单的HTTP服务器:</p>
+<pre><code class="language-javascript">const http = require(&quot;http&quot;);
+http.createServer((request, response) =&gt; {
+    response.writeHead(200, { &quot;Content-Type&quot;: &quot;text-plain&quot; });
+    response.end(&quot;Hello World
+&quot;);
+  }).listen(8124);
+</code></pre>
+<h3>API</h3>
+<h4>HTTP</h4>
+<p><code>http</code> 模块提供了两种使用方式：</p>
+<ul>
+<li>作为服务端时，创建一个HTTP服务器，监听HTTP客户端请求并返回响应</li>
+<li>作为客户端时，发起一个HTTP客户端请求，获取服务端响应</li>
+</ul>
+<p>HTTP请求本质上是一个数据流，由请求头和请求体组成。HTTP请求在发送给服务器时，可以认为是按照从头到尾的顺序一个字节一个字节地以数据流方式发送的。而http模块创建的HTTP服务器在接收到完整的请求头后，就会调用回调函数，在回调函数中，除了可以使用request对象访问请求头数据外，还能把request对象当作一个只读数据流来访问请求体数据。</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/30" rel="alternate"/><category term="Notes"/><category term="Node"/><published>2023-03-02T09:39:28+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/29</id><title>TypeScript小技巧记录</title><updated>2023-03-02T09:40:17.052625+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>用了TypeScript挺久了，工具链这边显著的特点就是不少模块由于业务原因亦或者是出于其他的一些考虑，后端所传输过来的数据很复杂，因此处理起来需要小心翼翼的，稍有不慎就会出现TypeError，因此之前在团队内部有做过一个小的分享，即如何使用TS让自己的数据处理更安全。这里将之前的PPT内容写成文章，此外也去除一些与具体业务有关的东西，方便后续补充以及沉淀～（话说PPT迷之找不到了，只剩下一些截图来和思维导图了）</p>
 <h4>思维导图</h4>
 <p><img src="https://cdn.nlark.com/yuque/0/2020/svg/296173/1589540812033-d9479ca5-0ca1-4a40-a22f-dd9934a0f7dc.svg" alt="" /></p>
@@ -54,7 +484,7 @@ const getData = (data: IDataSet) =&gt; {
 }
 </code></pre>
 <p>这样当我们不小心将key写错的时候，就会有相应的提示来:<img src="https://cdn.nlark.com/yuque/0/2020/png/296173/1589532010316-cd8cf056-4ba1-41ba-841f-ee50bc0c7b4b.png#align=left&amp;display=inline&amp;height=119&amp;name=image.png&amp;originHeight=358&amp;originWidth=1770&amp;size=76948&amp;status=done&amp;style=none&amp;width=590" alt="image.png" /><br />// 待续</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/29" rel="alternate"/><published>2023-03-02T09:38:42+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/28</id><title>TypeScript 装饰器--踩坑小日记</title><updated>2023-03-02T09:38:49.256198+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/29" rel="alternate"/><published>2023-03-02T09:38:42+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/28</id><title>TypeScript 装饰器--踩坑小日记</title><updated>2023-03-02T09:40:17.215004+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>最近在思考如何实现一个类型错误拦截的功能，意外的发现了基于装饰器实现的这个:</p>
 <blockquote>
 <p><a href="https://www.npmjs.com/package/reflect-metadata">https://www.npmjs.com/package/reflect-metadata</a></p>
@@ -160,7 +590,7 @@ const demo3 = new demo2()
 <blockquote>
 <p><a href="https://codesandbox.io/s/affectionate-darwin-5zmuj?file=/src/App.tsx">https://codesandbox.io/s/affectionate-darwin-5zmuj?file=/src/App.tsx</a></p>
 </blockquote>
-]]></content><link href="https://github.com/srtian/Blog/issues/28" rel="alternate"/><category term="TS"/><published>2023-03-02T09:38:21+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/27</id><title>Node 多进程和 cluster 原理</title><updated>2023-03-02T09:38:49.409399+00:00</updated><content type="html"><![CDATA[<h1>一、概述</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/28" rel="alternate"/><category term="TS"/><published>2023-03-02T09:38:21+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/27</id><title>Node 多进程和 cluster 原理</title><updated>2023-03-02T09:40:17.390788+00:00</updated><content type="html"><![CDATA[<h1>一、概述</h1>
 <p>由于node.js 主线程是单线程的，因此当我们的 node 程序运行时，通常只启动了一个进程，只能在一个 CPU 中进行运算，无法运用服务器中的多核 CPU。这显然是对于多核CPU服务器性能的浪费，因此我们需要寻求一些解决方案，来充分利用服务器的多核CPU，从而提升我们程序的运行效率。而对于这种情况，我们通常的做法就是 多进程分发策略：即主进程接收所有的请求，通过一定的负载均衡策略分发到不同的子进程中。而这一方案，其实也有两种不同的实现方式：</p>
 <ol>
 <li>主进程监听一个端口，子进程不监听端口，主进程分发请求到子进程中。这样做的好处在于，通常只需要占用一个端口，通信相对简单，转发策略也更为灵活。缺点则是实现相对会比较复杂，对主进程的稳定性也有更高的要求。</li>
@@ -219,7 +649,7 @@ const demo3 = new demo2()
 <li><a href="https://www.cnblogs.com/dashnowords/p/10958457.html">https://www.cnblogs.com/dashnowords/p/10958457.html</a></li>
 <li><a href="https://juejin.cn/post/6844903764093042695">https://juejin.cn/post/6844903764093042695</a></li>
 </ol>
-]]></content><link href="https://github.com/srtian/Blog/issues/27" rel="alternate"/><category term="Top"/><category term="Node"/><published>2023-03-02T09:36:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/26</id><title>《领域驱动设计》</title><updated>2023-03-02T09:38:49.522031+00:00</updated><content type="html"><![CDATA[<p>之前在接手BPM的工作时，被大佬推荐学习一下领域驱动设计，因此花了不少时间阅读了 Eric 的这本经典著作，不少章节翻了很多次，也有不少章节则选择性的放弃了（有一说一，很多模式实在不太理解），自我感觉总结起来主要有两点核心的思想：</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/27" rel="alternate"/><category term="Top"/><category term="Node"/><published>2023-03-02T09:36:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/26</id><title>《领域驱动设计》</title><updated>2023-03-02T09:40:17.597606+00:00</updated><content type="html"><![CDATA[<p>之前在接手BPM的工作时，被大佬推荐学习一下领域驱动设计，因此花了不少时间阅读了 Eric 的这本经典著作，不少章节翻了很多次，也有不少章节则选择性的放弃了（有一说一，很多模式实在不太理解），自我感觉总结起来主要有两点核心的思想：</p>
 <ol>
 <li>创造统一语言：领域专家和开发人员用同一语言讨论问题，术语和概念相统一。</li>
 <li>模型驱动开发：模型和代码相统一，并对数据的更改进行收敛以及限制。</li>
@@ -291,7 +721,7 @@ const demo3 = new demo2()
 <li>策略：是对于事件的响应，通常表示不属于某些聚集的逻辑，通过策略可以触发新的命令，而由策略触发的命令，被称为系统触发命令。</li>
 </ul>
 <p>而通过事件建模建立起的模型，我们就可以通过不断的事件风暴以及实践，去对事件进行收敛，从而提升我们的模型。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/26" rel="alternate"/><category term="Notes"/><category term="Basis"/><category term="Top"/><published>2023-03-02T09:34:40+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/25</id><title>《白帽子讲安全》</title><updated>2023-03-02T09:38:49.630116+00:00</updated><content type="html"><![CDATA[<h1>结构：</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/26" rel="alternate"/><category term="Notes"/><category term="Basis"/><category term="Top"/><published>2023-03-02T09:34:40+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/25</id><title>《白帽子讲安全》</title><updated>2023-03-02T09:40:17.790251+00:00</updated><content type="html"><![CDATA[<h1>结构：</h1>
 <p><img src="https://cdn.nlark.com/yuque/0/2022/jpeg/296173/1655191089154-1918e60a-b4f9-465e-8066-4cfc3d047347.jpeg" alt="" /></p>
 <h1>一、安全世界观</h1>
 <p><strong>安全问题的本质的信任的问题</strong>。</p>
@@ -372,7 +802,7 @@ Secure By DefauIt原则，最为基本的原则，<ol>
 <li>获取用户的真实IP地址：JavaScript本身并没有提供获取本地IP地址的能力，有没有其他办法？一般来说，XSS攻击需要借助第三方软件来完成。比如，客户端安装了Java环境（JRE），那么XSS就可以通过调用Java Applet的接口获取客户端的本地IP地址。</li>
 <li>XSS Worm</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/25" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:33:51+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/24</id><title>《远见》</title><updated>2023-03-02T09:38:49.740958+00:00</updated><content type="html"><![CDATA[<p>职业生涯是长期的，可以分为三个阶段：</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/25" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:33:51+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/24</id><title>《远见》</title><updated>2023-03-02T09:40:18.004575+00:00</updated><content type="html"><![CDATA[<p>职业生涯是长期的，可以分为三个阶段：</p>
 <ol>
 <li>初期，积攒燃料，补足短板</li>
 <li>中期，发挥长板，合作共赢</li>
@@ -415,7 +845,7 @@ Secure By DefauIt原则，最为基本的原则，<ol>
 </li>
 </ol>
 <p>我们总是会低估在未来才能兑现的好处，这种现象被称为‘时间贴现’（temporal discounting）。我们都不愿意用当前的痛苦，比如更辛苦的工作、更低的薪水、更低的声望等，来换取未来的某样东西，即使未来的好处其实更加丰厚。作为人类，我们本能地不相信未来的好处能够兑现，所以会在当前对它们打很大的折扣。”克里斯还在观察中发现了“损失厌恶”（loss aversion）的效应：“人们对后果和风险看得比好的方面更加清楚。我们的美梦很模糊，但噩梦却很清晰。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/24" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:33:03+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/23</id><title>重学前端之语义化</title><updated>2023-03-02T09:38:49.866768+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/24" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:33:03+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/23</id><title>重学前端之语义化</title><updated>2023-03-02T09:40:18.150523+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>本来很早前我就自认为对前端语义化有了一些了解，但在看完winter大大的专栏后才发现，自己对语义化的理解并不是很透彻，只存在于表面的理解而已，因此决定在学习winter老师的专栏后结合自己的一些理解，好好对其进行进行一个总结。</p>
 <h3>一、语义化是什么</h3>
 <p>从维基百科所得到的结果：</p>
@@ -516,7 +946,7 @@ Secure By DefauIt原则，最为基本的原则，<ol>
 <li><a href="https://www.zhihu.com/question/20455165">https://www.zhihu.com/question/20455165</a></li>
 <li><a href="https://time.geekbang.org/column/intro/154">https://time.geekbang.org/column/intro/154</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/23" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:32:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/22</id><title>重学前端之JavaScript语法</title><updated>2023-03-02T09:38:49.989665+00:00</updated><content type="html"><![CDATA[<h1>一、脚本与模块</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/23" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:32:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/22</id><title>重学前端之JavaScript语法</title><updated>2023-03-02T09:40:18.343530+00:00</updated><content type="html"><![CDATA[<h1>一、脚本与模块</h1>
 <p>JavaScript中又两种源文件，这个区分从ES6开始：</p>
 <ul>
 <li>脚本</li>
@@ -547,7 +977,7 @@ import d, * as x from &quot;./a.js&quot;
 </code></pre>
 <p>需要注意的是使用没使用 as 的默认值永远在最前，且这里的as只是换一个名字而已，当变量被改变的时候，as所产生的值也会随着改变。</p>
 <h3>export</h3>
-]]></content><link href="https://github.com/srtian/Blog/issues/22" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:31:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/21</id><title>重学前端之JavaScript类型</title><updated>2023-03-02T09:38:50.092010+00:00</updated><content type="html"><![CDATA[<p>按照JavaScript最新标准，一共定义了7种数据类型：</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/22" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:31:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/21</id><title>重学前端之JavaScript类型</title><updated>2023-03-02T09:40:18.525366+00:00</updated><content type="html"><![CDATA[<p>按照JavaScript最新标准，一共定义了7种数据类型：</p>
 <ol>
 <li>Undefined；</li>
 <li>Null；</li>
@@ -594,7 +1024,7 @@ import d, * as x from &quot;./a.js&quot;
 <li>Symbol。</li>
 </ul>
 <p>需要注意的是， 3 与 new Number(3)是完全不一样的，一个是Number类型一个是对象类型。而Number、String 和 Boolean这三个构造器也是两用的，当和new搭配时，会产生对象，当直接调用时，会进行强制类型转换。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/21" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:31:15+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/20</id><title>重学前端之JavaScript执行</title><updated>2023-03-02T09:38:50.198419+00:00</updated><content type="html"><![CDATA[<p>一个JavaScript引擎会常驻内存中，它等待着我们把JavaScript代码或者函数传递给它。</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/21" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:31:15+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/20</id><title>重学前端之JavaScript执行</title><updated>2023-03-02T09:40:18.707102+00:00</updated><content type="html"><![CDATA[<p>一个JavaScript引擎会常驻内存中，它等待着我们把JavaScript代码或者函数传递给它。</p>
 <p>按照JSC引擎术语，我们把宿主发起的任务称为宏观任务，将JavaScript引擎发起的任务称为微观任务。</p>
 <h2>一、宏观任务和微观任务</h2>
 <p>JavaScript 引擎等待宿主环境分配宏观任务，在操作系统中，通常等待的行为都是一个事件循环，因此在 Node 术语中，也会把这个部分称为事件循环。</p>
@@ -692,7 +1122,7 @@ async function foo*(){
 <p>任何 JavaScript 语句是可以加标签的，在语句前加冒号即可</p>
 <pre><code class="language-javascript"> firstStatement: var i = 1;
 </code></pre>
-]]></content><link href="https://github.com/srtian/Blog/issues/20" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:30:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/19</id><title>重学前端之JavaScript对象</title><updated>2023-03-02T09:38:50.293843+00:00</updated><content type="html"><![CDATA[<h2>一、基于对象的JavaScript</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/20" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:30:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/19</id><title>重学前端之JavaScript对象</title><updated>2023-03-02T09:40:18.947208+00:00</updated><content type="html"><![CDATA[<h2>一、基于对象的JavaScript</h2>
 <p>JavaScript是一门基于对象的编程语言，其标准对基于对象的定义如下：</p>
 <blockquote>
 <p>语言和宿主的基础设施由对象来提供，并且 JavaScript 程序即是一系列互相通讯的对象集合”</p>
@@ -955,7 +1385,7 @@ o.getValue(); //100
 <li>类型数组和数组缓冲区：跟内存块相关联，下标运算比较特殊。</li>
 <li>bind 后的 function：跟原来的函数相关联。</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/19" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:30:02+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/18</id><title>《写给大家看的色彩书：设计配色基础》</title><updated>2023-03-02T09:38:50.455683+00:00</updated><content type="html"><![CDATA[<p>《写给大家看的色彩书：设计配色基础》国内著名由设计师梁景红编写，主要谈及配色的基础技巧和必备理念。非常适合初学配色的专业人士来学习。仔细阅读此书后，我对配色有了非常全面的认识，也巩固了之前零散的色彩知识。很希望和大家交流分享。<br />这是一本非常不错的配色入门书，从色彩最基础的知识点讲起，逐渐深入到专业的理论，层层递进。配合相应的案例，虽然大部分在讲理论，却也一点都不枯燥。</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/19" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:30:02+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/18</id><title>《写给大家看的色彩书：设计配色基础》</title><updated>2023-03-02T09:40:19.186025+00:00</updated><content type="html"><![CDATA[<p>《写给大家看的色彩书：设计配色基础》国内著名由设计师梁景红编写，主要谈及配色的基础技巧和必备理念。非常适合初学配色的专业人士来学习。仔细阅读此书后，我对配色有了非常全面的认识，也巩固了之前零散的色彩知识。很希望和大家交流分享。<br />这是一本非常不错的配色入门书，从色彩最基础的知识点讲起，逐渐深入到专业的理论，层层递进。配合相应的案例，虽然大部分在讲理论，却也一点都不枯燥。</p>
 <p>之前都认为，配色只是一种感觉，只要根据常识和已有的审美走就可以了。其实不然，学习了解专业的理论知识，不仅能让你在配色过程中更加有自信，而且可以举一反三，从现有的经验推导至未知的领域，如果在工作上遇到以前没有接触过的内容，也可以轻松入手。</p>
 <p>本书的主要内容包括：<br />1.颜色的基础只是，配色基础原则：不超过三种颜色<br />2.主色、辅色、点缀色的使用<br />3.色彩集合：图像、文字、图案、图表都可以看成一种颜色<br />4.在不确定的时候，使用黑、白、灰调色<br />5.基础色调：相近色调或对比色调<br />6.根据色彩情感的关键词，选择主色<br />7.根据关键词选择色调，避开主色谈配色<br />8.色彩素材的实践运用：提取色彩——分析色彩——实践运用<br />9.突破对立色彩感受：从一端到另一端</p>
 <p><strong>chapter1</strong><br /><strong>色彩基础，让你拥有一个清晰的色彩概念</strong>：使用H（色相）S（饱和度）B（明度）的色相环调色</p>
@@ -1023,7 +1453,7 @@ o.getValue(); //100
 <p>**</p>
 <p><strong>chapter9突破对立色彩的感受：从一端到另一端的选择</strong><br /><strong>搭配出一种情感效果，很可能就无法得到另一种情感效果，在这种情况下就要合适的取舍，明确具体的配色目的。</strong><br /><strong>同样是浊色➕明色，不同的颜色搭配，可以得出不同情感的颜色搭配效果。可以是活泼的，可以是平静的，也可以平时，华丽的。</strong><br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910153027-db451be0-0970-40ea-8f59-3245d0972894.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=u1eb6f1ef&amp;name=image.png&amp;originHeight=466&amp;originWidth=770&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=307472&amp;status=done&amp;style=none&amp;taskId=u35601eab-b6d3-4d7d-92fd-bf99d489b42&amp;title=" alt="image.png" /></p>
 <p>最后：<br />色彩有冷暖之分，有性别之分，也有不同的感情基调。所以把色彩也当成有灵魂的“人”，在搭配的过程中，时时刻刻考虑到不同的色彩搭配在一起要“和谐相处”，才能构建出和谐的画面。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/18" rel="alternate"/><category term="Web"/><category term="产品"/><published>2023-03-02T09:28:33+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/17</id><title>关于B端产品的一些思考以及体会</title><updated>2023-03-02T09:38:50.581724+00:00</updated><content type="html"><![CDATA[<p>这半年来，由于某些原因，我在开发之余，也承担了平台前端产品需求的挖掘，设计和梳理的工作，也做成了诸如公开数据集模块，模型自动化等需求的前端交互设计或者是总体的业务流程设计，有些还挺不错，受到了一些好评。做着做着就由感而发，也对B端的产品设计有了一些自己的思考，因此总结一下这半年来，在这方面的体会以及心路历程。</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/18" rel="alternate"/><category term="Web"/><category term="产品"/><published>2023-03-02T09:28:33+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/17</id><title>关于B端产品的一些思考以及体会</title><updated>2023-03-02T09:40:19.394609+00:00</updated><content type="html"><![CDATA[<p>这半年来，由于某些原因，我在开发之余，也承担了平台前端产品需求的挖掘，设计和梳理的工作，也做成了诸如公开数据集模块，模型自动化等需求的前端交互设计或者是总体的业务流程设计，有些还挺不错，受到了一些好评。做着做着就由感而发，也对B端的产品设计有了一些自己的思考，因此总结一下这半年来，在这方面的体会以及心路历程。</p>
 <h2>一、AI 产品的不确定性</h2>
 <p>相较于传统的B端产品，AI平台最大的特点就是不确定，这个不确定表现在很多方面。譬如：</p>
 <ul>
@@ -1077,7 +1507,7 @@ o.getValue(); //100
 <li>文字 or 邮件关怀</li>
 <li>图形</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/17" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:47+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/16</id><title>关于 BPM 的一些记录与思考</title><updated>2023-03-02T09:38:50.739994+00:00</updated><content type="html"><![CDATA[<h1>BPMN2 及相关概念</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/17" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:47+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/16</id><title>关于 BPM 的一些记录与思考</title><updated>2023-03-02T09:40:19.553529+00:00</updated><content type="html"><![CDATA[<h1>BPMN2 及相关概念</h1>
 <p>去年刚入职的时候，学习了 AWS 的关于 BPMN2 的一些文档，输出一下自己对于文档的理解：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1622973941077-4798449f-2c53-465d-8e83-17e0dd2e48a7.png#clientId=ud374fb22-d32f-4&amp;from=paste&amp;height=500&amp;id=uec962f42&amp;name=image.png&amp;originHeight=744&amp;originWidth=2356&amp;originalType=binary&amp;ratio=1&amp;size=298008&amp;status=done&amp;style=none&amp;taskId=ue26f5275-bf9c-4914-a7f9-16be68b24f6&amp;width=1583" alt="image.png" /></p>
 <h1>流程</h1>
 <h2>流程是什么？</h2>
@@ -1108,7 +1538,7 @@ o.getValue(); //100
 <li>客户：在新的流程体系里，一切流程都是面向客户的，反思流程是否走完了全过程，实现了客户的价值与要求（需要回答两个问题：1. 对客户要有清晰的认知，客户是谁？客户端的需求是什么？2.用什么去实现客户价值）</li>
 </ol>
 <p>从上述必要构成出发，从领域驱动设计的角度来讲，我们对于一个流程的模型，或许可以如此抽象：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1624416125530-6d61e184-1a47-43e3-98d6-5e2308d0ad92.png#clientId=uc9de569a-6de0-4&amp;from=paste&amp;height=954&amp;id=ufd557560&amp;name=image.png&amp;originHeight=954&amp;originWidth=2090&amp;originalType=binary&amp;ratio=1&amp;size=126280&amp;status=done&amp;style=none&amp;taskId=udd88226e-99f5-48c5-b212-be8e0852401&amp;width=2090" alt="image.png" /></p>
-]]></content><link href="https://github.com/srtian/Blog/issues/16" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:22+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/15</id><title>浅谈 Rust 前端应用开发</title><updated>2023-03-02T09:38:50.886429+00:00</updated><content type="html"><![CDATA[<p>随着技术的不断演进，近年来愈来越多的非前端开发语言诸如：Rust、Go 等也开始进入前端/跨端应用开发领域，并收获了不小的开源社区的关注。因此本次在此尝试对基于 Rust 的一些 前端/跨端 应用开发进行一些分析，来分析一下这种开发模式的技术基础、基本方案等情况，由于篇幅原因将分为两部分：第一部分，主要讨论 Rust 前端应用开发的基本现状、原理以及收益等，而第二部分则会讨论号称 Electron 终结者的 Tauri 的基本情况、最大卖点、基本架构组成等。
+]]></content><link href="https://github.com/srtian/Blog/issues/16" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:22+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/15</id><title>浅谈 Rust 前端应用开发</title><updated>2023-03-02T09:40:19.706645+00:00</updated><content type="html"><![CDATA[<p>随着技术的不断演进，近年来愈来越多的非前端开发语言诸如：Rust、Go 等也开始进入前端/跨端应用开发领域，并收获了不小的开源社区的关注。因此本次在此尝试对基于 Rust 的一些 前端/跨端 应用开发进行一些分析，来分析一下这种开发模式的技术基础、基本方案等情况，由于篇幅原因将分为两部分：第一部分，主要讨论 Rust 前端应用开发的基本现状、原理以及收益等，而第二部分则会讨论号称 Electron 终结者的 Tauri 的基本情况、最大卖点、基本架构组成等。
 <a name="rwzVM"></a></p>
 <h1>一、兴起的基础</h1>
 <p>对于前端应用开发有一定了解的同学应该知道，可以在浏览器端运行的编程语言主要有两种：</p>
@@ -1224,7 +1654,7 @@ pub struct Element {
 <li><a href="https://rustwasm.github.io/docs/book/introduction.html">https://rustwasm.github.io/docs/book/introduction.html</a></li>
 <li><a href="https://webassembly.org/docs/security/">https://webassembly.org/docs/security/</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/15" rel="alternate"/><category term="Top"/><category term="Rust"/><published>2023-03-02T09:25:44+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/14</id><title>浅谈 Rust 所有权机制</title><updated>2023-03-02T09:38:51.009665+00:00</updated><content type="html"><![CDATA[<h1>一、什么是 stack 和 heap</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/15" rel="alternate"/><category term="Top"/><category term="Rust"/><published>2023-03-02T09:25:44+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/14</id><title>浅谈 Rust 所有权机制</title><updated>2023-03-02T09:40:19.877002+00:00</updated><content type="html"><![CDATA[<h1>一、什么是 stack 和 heap</h1>
 <p>stack 和 heap 都用于变量的内存存储。对于大多数的编程人员来讲，都无需去关心内存是如何分配到 heap 和 stack 中的（实际上，对于 stack   和 heap 的区别，也很多人并不是很清楚）。譬如在JavaScript中，大多数人知道一个结论：基本数据类型放在 stack 中，而引用数据类型放在 heap 里面。但一旦问到，为何需要这样进行划分的时候，少有人可以说上一二。</p>
 <p>那它们到底有什么区别呢？ 首先它们虽然都是可供代码使用的内存，但结构是不同的。 stack是一个线性的数据结构，以放入值得顺序存储值并以相反的顺序取出值，也就是我们常说的：后进先出。其数据的输入和取出，则通常被称为 进栈、出栈。由于 <code>stack</code>是线性的数据结构，所以 stack 中的所有数据都是必须占用<strong>已知且固定</strong>的大小。</p>
 <p>而 heap 则是一个非线性的数据结构，是缺乏组织的。因此对于一些在初始时，大小未知或大小可能发生变化的数据，则可以放在堆中。当我们想要在堆中存储一些数据时，我们通常其实是请求一块大小合适的空间，然后操作系统在堆中搜索一个足够大的空间以匹配我们所请求的内存量，并将其标记为已用，并返回一个表示该位置地址的 **指针， **而这个指针也通常被存在 stack 中。这个过程也就是 <strong>堆内存分配</strong>，也常被称为 <strong>内存分配。</strong></p>
@@ -1386,7 +1816,7 @@ fn main() {
 }
 </code></pre>
 <p>如此我们就能将借用的变量进行返回来。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/14" rel="alternate"/><category term="Rust"/><published>2023-03-02T08:09:43+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/13</id><title>产品可用性之容错处理设计及实践</title><updated>2023-03-02T09:38:51.184437+00:00</updated><content type="html"><![CDATA[<h2>一、为什么说容错处理很重要</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/14" rel="alternate"/><category term="Rust"/><published>2023-03-02T08:09:43+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/13</id><title>产品可用性之容错处理设计及实践</title><updated>2023-03-02T09:40:20.044947+00:00</updated><content type="html"><![CDATA[<h2>一、为什么说容错处理很重要</h2>
 <p>B端产品由于其自身就具有一定的业务复杂度以及上手成本，因此在可用性方面，做好容错处理至关重要。一个好的容错处理既可以有效的提升用户使用产品的顺畅程度以及使用效率，也可以避免一些产品设计不够完善的问题的暴露。<br />
 <br />下图是我在学习尼尔森十大可用性原则时所做的学习思维导图：<br /></p>
 <p><img src="https://cdn.nlark.com/yuque/0/2020/svg/296173/1591757022787-9e968925-89d4-4a08-ad73-1f24b61a8298.svg" alt="" />从上述的思维导图我们不难发现，尼尔森所强调的可用性原则里面，绝大部分其实都和容错处理息息相关。我个人理解，容错处理我们可以在一下几个方面进行设计：</p>
@@ -1439,7 +1869,7 @@ fn main() {
 <br />类似的例子还有很多，比如PS，LR等操作软件，也提供了历史记录的功能，可以轻松回退的相应的地方<br /></p>
 <h2>结语</h2>
 <p>上述只是我个人在实践过程中的一些体会以及方法论，因为大家的产品特征不同，所要解决的问题，目标用户群体也不同。因此在具体的设计时，要根据自身的特点，去因地制宜的设计合理的容错处理机制。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/13" rel="alternate"/><category term="Web"/><category term="产品"/><category term="Top"/><published>2020-06-10T07:07:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/12</id><title>简述JavaScript模块化编程</title><updated>2023-03-02T09:38:51.287226+00:00</updated><content type="html"><![CDATA[<h1>简述JavaScript模块化编程</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/13" rel="alternate"/><category term="Web"/><category term="产品"/><category term="Top"/><published>2020-06-10T07:07:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/12</id><title>简述JavaScript模块化编程</title><updated>2023-03-02T09:40:20.225151+00:00</updated><content type="html"><![CDATA[<h1>简述JavaScript模块化编程</h1>
 <p>在早期编写JavaScript时，我们只需在 script 标签内写入JavaScript的代码就可以满足我们对页面交互的需要了。但随着时间的推移，时代的发展，原本的那种简单粗暴的编写方式所带来的诸如逻辑混乱，页面复杂，可维护性差，全局变量暴露等问题接踵而至，前辈们为了解决这些问题提出了很种的解决方案，其中之一就是JavaScript模块化编程。总的来说，它有以下四种优点：<br /></p>
 <ol>
 <li>解决项目中的全局变量污染的问题。</li>
@@ -1794,7 +2224,7 @@ export { add as add1 } from ./example.js; //以add这个名称导入，再以add
 export *  from ./example.js;
 </code></pre>
 <p><br />// 最后求一波暑期前端实习的坑位-_-||</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/12" rel="alternate"/><category term="JavaScript"/><published>2020-04-07T07:51:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/11</id><title>聊一聊常见的浏览器端数据存储方案</title><updated>2023-03-02T09:38:51.428236+00:00</updated><content type="html"><![CDATA[<h3>前言：</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/12" rel="alternate"/><category term="JavaScript"/><published>2020-04-07T07:51:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/11</id><title>聊一聊常见的浏览器端数据存储方案</title><updated>2023-03-02T09:40:20.430846+00:00</updated><content type="html"><![CDATA[<h3>前言：</h3>
 <p>五一假期在撸代码的时候用到cookie，感觉对浏览器的数据存储方案不是很了解，因此又去翻了两本大头书中间的关于浏览器端数据存储的章节，同时去MDN逛了逛，又看了几篇文章，算是对浏览器的数据存储方案有了一个了解，在此总结一下！</p>
 <h2>浏览器存储</h2>
 <p>在浏览器端存储数据对我们是很有用，这相当于赋予浏览器记忆的功能，可以纪录用户的所有状态信息，增强用户体验。比如当纪录用户的登陆状态时，可以让用户能够更快的进行访问，而不是每次登陆时都需要去进行繁琐的操作。</p>
@@ -2036,7 +2466,7 @@ request.onupgradeneededd = function(e) {
 <h4>3. indexedDB受同源策略的限制</h4>
 <p>indexedDB使用同源原则，这意味着它把存储空间绑定到了创建它的站点的源（典型情况下，就是站点的域或是子域），所以它不能被任何其他源访问。要着重指出的一点是 IndexedDB 不适用于从另一个站点加载进框架的内容 (不管是 <frame> 还是 &lt;iframe>。这是一项安全措施。详情请看这个：<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=595307">https://bugzilla.mozilla.org/show_bug.cgi?id=595307</a></p>
 <p>除此之外，IndexedDB还存在诸如：不适合存储敏感数据，相较于web存储机制的操作更加复杂等问题，这都是我们在使用IndexedDB时需要考虑的。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/11" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T10:04:17+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/10</id><title>React高阶组件的那些事，了解一下？</title><updated>2023-03-02T09:38:51.556679+00:00</updated><content type="html"><![CDATA[<h4>前言</h4>
+]]></content><link href="https://github.com/srtian/Blog/issues/11" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T10:04:17+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/10</id><title>React高阶组件的那些事，了解一下？</title><updated>2023-03-02T09:40:20.611896+00:00</updated><content type="html"><![CDATA[<h4>前言</h4>
 <p>学习react已经有一段时间了，期间在阅读官方文档的基础上也看了不少文章，但感觉对很多东西的理解还是不够深刻，因此这段时间又在撸一个基于react全家桶的聊天App（现在还在瞎78写的阶段，在往这个聊天App这个方向写），通过实践倒是对react相关技术栈有了更为深刻的理解，而在使用react-redux的过程中，发现connect好像还挺有意思的，也真实感受到了高阶组件所带来的便利，出于自己写项目本身就是为了学习的目的，因此对高阶组件又进行了一番学习。写下这篇文章主要是对高阶组件的知识进行一个梳理与总结，如有错误疏漏之处，敬请指出，不胜感激。</p>
 <h2>初识高阶组件</h2>
 <p><em>要学习高阶组件首先我们要知道的就是高阶组件是什么，解决了什么样的问题。</em></p>
@@ -2259,7 +2689,7 @@ class HOC extends ... {
 <p>实际上我们不用自己来写getDisplayName这个函数，recompose 提供了这个函数，我们只要使用即可。</p>
 <h4>结尾语</h4>
 <p>我们其他要注意的就是<a href="https://react.bootcss.com/react/docs/higher-order-components.html">官方文档</a>所说的几个约定与相关规范，在此我就不一一赘述了，感兴趣的可以自己去看看。最后很感谢能看到这里的朋友，因为水平有限，如果有错误敬请指正，十分感激！</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/10" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T10:00:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/9</id><title> 从 HTML5 WebSocket 到 Socket.io</title><updated>2023-03-02T09:38:51.703316+00:00</updated><content type="html"><![CDATA[<h2>HTML5 WebSocket概述</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/10" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T10:00:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/9</id><title> 从 HTML5 WebSocket 到 Socket.io</title><updated>2023-03-02T09:40:20.795173+00:00</updated><content type="html"><![CDATA[<h2>HTML5 WebSocket概述</h2>
 <p>作为新一代的web标准，HTML5为我们提供了很多有用的东西，比如canvas，本地存储（已经分离出去了），多媒体编程接口，当然还有我们的WebSocket。WebSocket是HTML5开始提供的一种浏览器与服务器间进行全双工通讯（full-duplex）的网络技术，可以传输基于信息的文本和二进制的数据。它于2011年被IETF定为标准 RFC 6455，同时WebSocket API也被W3C定为标准。</p>
 <h2>一、WebSocket产生的背景</h2>
 <h3>1.黎明前的黑暗——实时web应用的需求</h3>
@@ -2425,7 +2855,7 @@ client.on(&#x27;disconnect&#x27;,function(){
 <pre><code class="language-JavaScript">import io from &#x27;socket.io-client&#x27;
 const socket = io(&#x27;ws://localhost:8080&#x27;)
 </code></pre>
-]]></content><link href="https://github.com/srtian/Blog/issues/9" rel="alternate"/><category term="FE"/><category term="Web"/><category term="JavaScript"/><published>2019-09-28T09:59:23+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/8</id><title>Redux 源码解读</title><updated>2023-03-02T09:38:51.885061+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/9" rel="alternate"/><category term="FE"/><category term="Web"/><category term="JavaScript"/><published>2019-09-28T09:59:23+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/8</id><title>Redux 源码解读</title><updated>2023-03-02T09:40:20.971718+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>作为React全家桶的一份子，Redux为react提供了严谨周密的状态管理。但Redux本身是有点难度的，虽然学习了React也有一段时间了，自我感觉算是入了门，也知道redux的大概流程。但其背后诸如creatstore,applymiddleware等API背后到底发生了什么事情，我其实还是不怎么了解的，因此最近花了几天时间阅读了Redux的源码，写下文章纪录一下自己看源码的一些理解。（redux4.0版本）</p>
 <h3>一、源码结构</h3>
 <p>Redux是出了名的短小精悍（恩，这个形容很贴切），只有2kb大小，且没有任何依赖。它将所有的脏活累活都交给了中间件去处理，自己保持着很好的纯洁性。再加上redux作者在redux的源码上，也附加了大量的注释，因此redux的源码读起来还是不算难的。</p>
@@ -2766,7 +3196,7 @@ export default function bindActionCreators(actionCreators, dispatch) {
 </code></pre>
 <h3>小节</h3>
 <p>看一遍redux，感觉设计十分巧秒，不愧是大佬的作品。这次看代码只是初看，往后随着自己学习的不断深入，还需多加研究，绝对还能得到更多的体会。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/8" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:58:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/7</id><title>深入理解 Redux 中间件——走马观花</title><updated>2023-03-02T09:38:51.994842+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/8" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:58:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/7</id><title>深入理解 Redux 中间件——走马观花</title><updated>2023-03-02T09:40:21.150408+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>最近几天对 redux 的中间件进行了一番梳理，又看了 redux-saga 的文档，和 redux-thunk 和 redux-promise 的源码，结合前段时间看的redux的源码的一些思考，感觉对 redux 中间件的有了更加深刻的认识，因此总结一下。</p>
 <h3>一、Redux中间件机制</h3>
 <p>Redux本身就提供了非常强大的数据流管理功能，但这并不是它唯一的强大之处，它还提供了利用中间件来扩展自身功能，以满足用户的开发需求。首先我们来看中间件的定义：</p>
@@ -2943,7 +3373,7 @@ function loadInitData(ip) {
 <li>《深入浅出React和Redux》</li>
 <li>《深入React技术栈》</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/7" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:56:41+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/6</id><title>初探 HTML5 Web Workers</title><updated>2023-03-02T09:38:52.176355+00:00</updated><content type="html"><![CDATA[<h3>一、Web Workers是什么</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/7" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:56:41+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/6</id><title>初探 HTML5 Web Workers</title><updated>2023-03-02T09:40:21.327238+00:00</updated><content type="html"><![CDATA[<h3>一、Web Workers是什么</h3>
 <blockquote>
 <p>Web Worker为Web内容在后台线程中运行脚本提供了一种简单的方法。线程可以执行任务而不干扰用户界面。此外，他们可以使用XMLHttpRequest执行 I/O (尽管responseXML和通道属性总是为空)。一旦创建， 一个worker 可以将消息发送到创建它的JavaScript代码, 通过将消息发布到该代码指定的事件处理程序 (反之亦然)。 —— MDN</p>
 </blockquote>
@@ -3071,7 +3501,7 @@ worker.postMessage({
 <li><a href="https://qiutc.me/post/the-multithread-in-javascript-web-worker.html">https://qiutc.me/post/the-multithread-in-javascript-web-worker.html</a></li>
 <li><a href="https://juejin.im/post/5a90233bf265da4e92683de3">https://juejin.im/post/5a90233bf265da4e92683de3</a></li>
 </ol>
-]]></content><link href="https://github.com/srtian/Blog/issues/6" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:54:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/5</id><title>浅谈HTTP缓存</title><updated>2023-03-02T09:38:52.280829+00:00</updated><content type="html"><![CDATA[<h3>一、HTTP缓存概述（HTTP Cache）</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/6" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:54:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/5</id><title>浅谈HTTP缓存</title><updated>2023-03-02T09:40:21.488636+00:00</updated><content type="html"><![CDATA[<h3>一、HTTP缓存概述（HTTP Cache）</h3>
 <p>要搞清楚HTTP缓存，首先当然是要搞清楚缓存是啥，按照MDN的描述，缓存是这样的：</p>
 <blockquote>
 <p>缓存是一种保存资源副本并在下次请求时直接使用该副本的技术。当 web 缓存发现请求的资源已经被存储，它会拦截请求，返回该资源的拷贝，而不会去源服务器重新下载。这样带来的好处有：缓解服务器端压力，提升性能(获取资源的耗时更短了)。对于网站来说，缓存是达到高性能的重要组成部分。缓存需要合理配置，因为并不是所有资源都是永久不变的：重要的是对一个资源的缓存应截止到其下一次发生改变（即不能缓存过期的资源）。</p>
@@ -3139,7 +3569,7 @@ cache-control: max-age=691200
 <li><a href="https://www.cnblogs.com/lyzg/p/5125934.html#_label3">https://www.cnblogs.com/lyzg/p/5125934.html#_label3</a></li>
 <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching_FAQ">https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching_FAQ</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/5" rel="alternate"/><category term="FE"/><category term="Web"/><category term="Basis"/><published>2019-09-28T09:52:53+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/4</id><title>五分钟，简单聊一聊React Component的发展历程</title><updated>2023-03-02T09:38:52.394833+00:00</updated><content type="html"><![CDATA[<h3>一、 前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/5" rel="alternate"/><category term="FE"/><category term="Web"/><category term="Basis"/><published>2019-09-28T09:52:53+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/4</id><title>五分钟，简单聊一聊React Component的发展历程</title><updated>2023-03-02T09:40:21.673896+00:00</updated><content type="html"><![CDATA[<h3>一、 前言</h3>
 <p>随着 react 最新的一个大版本中，给我们带来了 Hooks：<a href="https://reactjs.org/blog/2019/02/06/react-v16.8.0.html">React v16.8: The One With Hooks</a>，从而将 Function component 的能力提高了一大截，成功的拥有了可以与 Class component 抗衡的能力。但话说回来，虽然 Hooks 看起来很美好，最近也有不少文章都讲解了Hooks这一“黑魔法”，但技术的不断演进，本身就是一个解决以往所存在问题的过程，因此我个人认为着眼于现在，回望过去，去看一看 react component 的发展之路，去看看 Class component 以及 Function component 为什么会出现以及它们出现的意义，所要解决的问题，也对于我们全面了解 react 是很有帮助的。</p>
 <p>从 react component 的发展历程上来看，它主要是经历了一下三个阶段：</p>
 <ol>
@@ -3312,7 +3742,7 @@ export default MyComponent
 <li><a href="http://taobaofed.org/blog/2018/11/27/hooks-and-function-component/">http://taobaofed.org/blog/2018/11/27/hooks-and-function-component/</a></li>
 <li><a href="https://www.freecodecamp.org/news/this-is-why-we-need-to-bind-event-handlers-in-class-components-in-react-f7ea1a6f93eb/">https://www.freecodecamp.org/news/this-is-why-we-need-to-bind-event-handlers-in-class-components-in-react-f7ea1a6f93eb/</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/4" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:52:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/3</id><title>浅析 Rematch 源码</title><updated>2023-03-02T09:38:52.529877+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/4" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:52:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/3</id><title>浅析 Rematch 源码</title><updated>2023-03-02T09:40:21.905902+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>入职后公司用的技术栈还是 react，但状态管理由我原本熟悉的 redux 进化成了在 redux 基础上封装而成的 rematch。用起来也着实方便不少，减少了很多样板代码的编写，同时也不用引入中间件来管理异步请求了，但在用起来的过程中难免就会引起了我对 rematch 的一些小疑问：</p>
 <ul>
 <li>它是怎么封装 诸如action creator这些以往在 redux 中繁琐的“样本”代码的？</li>
@@ -3715,7 +4145,7 @@ export default function({
 <li><a href="https://juejin.im/post/5b13fe155188257d6c046728">Redux 源码解读</a></li>
 <li><a href="https://juejin.im/post/5b237569f265da59bf79f3e9">深入理解 Redux 中间件</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/3" rel="alternate"/><category term="FE"/><category term="JavaScript"/><category term="React"/><published>2019-09-28T09:41:20+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/2</id><title>《Don't Make Me Think》读书笔记</title><updated>2023-03-02T09:38:52.641604+00:00</updated><content type="html"><![CDATA[<h3>一、别让我思考</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/3" rel="alternate"/><category term="FE"/><category term="JavaScript"/><category term="React"/><published>2019-09-28T09:41:20+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/2</id><title>《Don't Make Me Think》读书笔记</title><updated>2023-03-02T09:40:22.084355+00:00</updated><content type="html"><![CDATA[<h3>一、别让我思考</h3>
 <p>网页的易用性最重要的一点就是无需用户去思考。这也代表着交互一般劲量趋向于简单化，平整化，以减少用户的认知负担，减少对用户的干扰。</p>
 <p>示例：亚马逊搜索没有提及一定要去搜索什么内容，只会对你所输入的进行分析，这样就会减少用户的思考的成本（淘宝也是如此，通过自然语言处理来对用户的输入进行分析）</p>
 <p>比较典型的地方：</p>
@@ -3873,7 +4303,7 @@ export default function({
 <li>容易从错误中恢复</li>
 <li>如有不确定，记得道歉</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/2" rel="alternate"/><category term="Notes"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:34:00+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/1</id><title>浅析浏览器进程发展历程</title><updated>2023-03-02T09:38:52.877106+00:00</updated><content type="html"><![CDATA[<h3>一、浏览器的多进程概括</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/2" rel="alternate"/><category term="Notes"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:34:00+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/1</id><title>浅析浏览器进程发展历程</title><updated>2023-03-02T09:40:22.473551+00:00</updated><content type="html"><![CDATA[<h3>一、浏览器的多进程概括</h3>
 <p>要想搞明白什么是浏览器的多进程，首先得知道什么是进程。按照维基百科的说法：</p>
 <blockquote>
 <p>进程是计算机中已运行程序的实体。进程是线程的容器，进程本身不运行。程序本身只是指令的集合，进程才是程序（指令）的真正运行。每个程序可以有多个进程，每个进程都有自己的资源。</p>
