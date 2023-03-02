@@ -16,7 +16,7 @@ and have some understanding of Saas and tob businesses. Besides development, I a
 ## 置顶文章
 - [产品可用性之容错处理设计及实践](https://github.com/srtian/Blog/issues/13)--2020-06-10
 ## 最近更新
-- [Test](https://github.com/srtian/Blog/issues/14)--2023-03-02
+- [浅谈 Rust 所有权机制](https://github.com/srtian/Blog/issues/14)--2023-03-02
 - [产品可用性之容错处理设计及实践](https://github.com/srtian/Blog/issues/13)--2020-06-10
 - [简述JavaScript模块化编程](https://github.com/srtian/Blog/issues/12)--2020-04-07
 - [聊一聊常见的浏览器端数据存储方案](https://github.com/srtian/Blog/issues/11)--2019-09-28
@@ -64,6 +64,6 @@ and have some understanding of Saas and tob businesses. Besides development, I a
 ## Basis
 - [浅谈HTTP缓存](https://github.com/srtian/Blog/issues/5)--2019-09-28
 ## Rust
-- [Test](https://github.com/srtian/Blog/issues/14)--2023-03-02
+- [浅谈 Rust 所有权机制](https://github.com/srtian/Blog/issues/14)--2023-03-02
 ## 产品
 - [产品可用性之容错处理设计及实践](https://github.com/srtian/Blog/issues/13)--2020-06-10
