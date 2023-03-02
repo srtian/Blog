@@ -4,16 +4,15 @@ I worked for Kwai and Horizon Robot. I mainly focus on Web development,
 and have some understanding of Saas and tob businesses. Besides development, I am also interested in travel, photography and reading. Have a good day~
 
 ---
-- WebChat: Srtiann
+- WeChat: Srtiann
 - Email: shenruotian@outlook.com
 - GitHub: [@Srtian](https://github.com/srtian)
 - Instagram: [@Srtian](https://www.instagram.com/srtian96/?next=%2F)
-- ex-blog: [YueQue](https://www.yuque.com/srtian)
-- Some Record: [Record](https://github.com/srtian/Record)
-## 友情链接
-| Name | Link | Desc | 
- | ---- | ---- | ---- |
+- Ex-blog: [Yueque](https://www.yuque.com/srtian)
+- Some flow records about life and work: [Record](https://github.com/srtian/Record)
+- [Reading Record](https://srtbooks.notion.site/a55c12708dbe42969b7052a6fe9f35c2?v=371ed1453ada49789f6d176e7d00ef08)
 ## 置顶文章
+- [浅析 V8 GC 算法](https://github.com/srtian/Blog/issues/37)--2023-03-02
 - [初探 Serverless](https://github.com/srtian/Blog/issues/35)--2023-03-02
 - [Node 多进程和 cluster 原理](https://github.com/srtian/Blog/issues/27)--2023-03-02
 - [《领域驱动设计》](https://github.com/srtian/Blog/issues/26)--2023-03-02
