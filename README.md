@@ -63,5 +63,7 @@ and have some understanding of Saas and tob businesses. Besides development, I a
 - [《Don't Make Me Think》读书笔记](https://github.com/srtian/Blog/issues/2)--2019-09-28
 ## Basis
 - [浅谈HTTP缓存](https://github.com/srtian/Blog/issues/5)--2019-09-28
+## Rust
+- [Test](https://github.com/srtian/Blog/issues/14)--2023-03-02
 ## 产品
 - [产品可用性之容错处理设计及实践](https://github.com/srtian/Blog/issues/13)--2020-06-10
