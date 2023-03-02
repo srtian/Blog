@@ -16,11 +16,11 @@ and have some understanding of Saas and tob businesses. Besides development, I a
 ## 置顶文章
 - [产品可用性之容错处理设计及实践](https://github.com/srtian/Blog/issues/13)--2020-06-10
 ## 最近更新
+- [《白帽子讲安全》](https://github.com/srtian/Blog/issues/25)--2023-03-02
 - [《远见》](https://github.com/srtian/Blog/issues/24)--2023-03-02
 - [重学前端之语义化](https://github.com/srtian/Blog/issues/23)--2023-03-02
 - [重学前端之JavaScript语法](https://github.com/srtian/Blog/issues/22)--2023-03-02
 - [重学前端之JavaScript类型](https://github.com/srtian/Blog/issues/21)--2023-03-02
-- [重学前端之JavaScript执行](https://github.com/srtian/Blog/issues/20)--2023-03-02
 ## Web
 - [《写给大家看的色彩书：设计配色基础》](https://github.com/srtian/Blog/issues/18)--2023-03-02
 - [产品可用性之容错处理设计及实践](https://github.com/srtian/Blog/issues/13)--2020-06-10
@@ -61,13 +61,14 @@ and have some understanding of Saas and tob businesses. Besides development, I a
 </details>
 
 ## Notes
+- [《白帽子讲安全》](https://github.com/srtian/Blog/issues/25)--2023-03-02
 - [《远见》](https://github.com/srtian/Blog/issues/24)--2023-03-02
 - [重学前端之语义化](https://github.com/srtian/Blog/issues/23)--2023-03-02
 - [重学前端之JavaScript语法](https://github.com/srtian/Blog/issues/22)--2023-03-02
 - [重学前端之JavaScript类型](https://github.com/srtian/Blog/issues/21)--2023-03-02
-- [重学前端之JavaScript执行](https://github.com/srtian/Blog/issues/20)--2023-03-02
 <details><summary>显示更多</summary>
 
+- [重学前端之JavaScript执行](https://github.com/srtian/Blog/issues/20)--2023-03-02
 - [重学前端之JavaScript对象](https://github.com/srtian/Blog/issues/19)--2023-03-02
 - [《Don't Make Me Think》读书笔记](https://github.com/srtian/Blog/issues/2)--2019-09-28
 </details>
