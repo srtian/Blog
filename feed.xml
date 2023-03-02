@@ -1,5 +1,267 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<feed xmlns="http://www.w3.org/2005/Atom"><id>https://github.com/srtian/Blog</id><title>RSS feed of srtian's Blog</title><updated>2023-03-02T09:44:02.660054+00:00</updated><author><name>srtian</name><email>shenruotian@gmail.com</email></author><link href="https://github.com/srtian/Blog"/><link href="https://raw.githubusercontent.com/srtian/Blog/master/feed.xml" rel="self"/><generator uri="https://lkiesow.github.io/python-feedgen" version="0.9.0">python-feedgen</generator><entry><id>https://github.com/srtian/Blog/issues/35</id><title>初探 Serverless</title><updated>2023-03-02T09:44:02.968216+00:00</updated><content type="html"><![CDATA[<h1>前言</h1>
+<feed xmlns="http://www.w3.org/2005/Atom"><id>https://github.com/srtian/Blog</id><title>RSS feed of srtian's Blog</title><updated>2023-03-02T09:45:16.752163+00:00</updated><author><name>srtian</name><email>shenruotian@gmail.com</email></author><link href="https://github.com/srtian/Blog"/><link href="https://raw.githubusercontent.com/srtian/Blog/master/feed.xml" rel="self"/><generator uri="https://lkiesow.github.io/python-feedgen" version="0.9.0">python-feedgen</generator><entry><id>https://github.com/srtian/Blog/issues/37</id><title>浅析 V8 GC 算法</title><updated>2023-03-02T09:45:17.447778+00:00</updated><content type="html"><![CDATA[<h1>前言</h1>
+<p>通常来讲，所有动态创建的对象都会被非配到堆内存中，但由于堆内存本身存在大小限制，因此当我们创建的对象的大小到达一定的数量时，就会出现内存不足而导致程序报错的问题；这时，我们就需要通过将那些被程序所不能访问到的对象所占用的内存进行释放，从而获得新的可用空间。对于内存的管理，现在市面上大致有以下三种方案：</p>
+<ul>
+<li>以C、C++为代表的手动内存管理，需要程序员自己对内存进行申请、释放以及分配</li>
+<li>以 Go、Python 为代表的高级语言，通过各种 垃圾回收（GC）实现内存管理</li>
+<li>Rust 通过所有权机制以及生命周期，来实现内存管理<br />而正如上述第二种方案所述，V8 进行内存管理的方案就是使用 GC 去实现；而很多初学 JavaScript 的同学在看 MDN 关于 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_Management#garbage_collection">内存管理</a> 的章节后，大致就会了解到，V8 是使用标记-清除算法（Mark-Sweeping GC ）实现的垃圾回收。但如果对V8的垃圾回收做更为深入的了解后，又会发现，Mark-Sweeping GC 并不能涵盖 V8 垃圾回收的主要思想，还需要引入诸如：新生代、老生代、From\To 等等新的概念，就像这样：</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/296173/1655104701521-ac86e32a-dcc9-47a9-b253-72d8ba466369.png#clientId=u537e9e48-652d-4&amp;from=paste&amp;height=306&amp;id=ud1772bc4&amp;name=image.png&amp;originHeight=611&amp;originWidth=1304&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=112147&amp;status=done&amp;style=none&amp;taskId=u8b20260b-5ad1-4548-9abe-2a623d58c4f&amp;title=&amp;width=652" alt="image.png" /><br />这样的困惑在于：大多数的文章都是在告诉大家 V8 怎么做（How），但并没有去解释：这些东西是什么（What）以及为何要这样 (Why)。因此，本文将尝试从 标记清除算法开始去分析：标记清除算法本身是什么以及存在什么问题，以及为了解决这些问题又需要引入哪些算法。希望能通过这篇文章，让大家能对 V8 组成的大概架构有所了解，更希望能够通过V8 的设计思路，能对一些经典算法的应用以及设计思想有所了解，从而应用到自己的开发中去。</p>
+<h1>一、标记清除（Mark Sweep GC）</h1>
+<p>标记清除算法可以说是应用最为广泛的 GC 算法之一，其核心思想在于：首先对堆内存进行遍历进行标记，从而区分活动对象与非活动对象（这里需要补充的是活动对象与非活动对象，我们通常讲能被程序所访问到的对象称之为活动对象，反之不能被访问的则是非活动对象；且当一个活动对象转化为非活动对象后，这个过程将不可逆。），然后再进行一次遍历，将标记为非活动对象的内存进行回收，放入空闲链表中，最后在空闲链表中根据一定的信息进行分配内存；伪代码如下：</p>
+<pre><code class="language-rust">fn markSweep() {
+    mark() // mark all live objects, start from the roots
+    sweep()
+}
+
+fn mark() {
+    for(root in $roots) {
+        markObj(*root)
+    }
+}
+
+fn markObj(obj) {
+    if(obj.mark === FALSE) {
+        obj.mark = TRUE
+        for(Child in Children(obj)) {
+            markObj(*child)
+        }
+    }
+}
+
+fn sweep() {
+   for(root in $roots) {
+       if(root.mark === TRUE) {
+       // If it is found to be a live object
+       // reset it to FALSE and wait until the next GC
+          root.mark = FALSE
+       } else {
+           freeList.next = root
+       }
+   }
+}
+</code></pre>
+<p>需要注意的是，我们在这里进行对象遍历时，通常使用的是深度优先搜索；这是因为较之广度优先，两者完成搜索所需的步数并不会有所区别，只取决于需要遍历的对象的数量；但在内存使用方面，深度优先所需的内存量是比广度优先要少的。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/296173/1655104721919-45b5fc59-b6d5-4171-90f2-4237b8a17c16.png#clientId=u537e9e48-652d-4&amp;from=paste&amp;height=535&amp;id=u4aeb16ed&amp;name=image.png&amp;originHeight=1070&amp;originWidth=1304&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=665990&amp;status=done&amp;style=none&amp;taskId=u7e760cfd-91d1-4009-b326-37a4952e443&amp;title=&amp;width=652" alt="image.png" /></p>
+<blockquote>
+<p>Difference between BFS and DFS - GeeksforGeeks</p>
+</blockquote>
+<p>在完成非活动对象的释放后，我们还需要对已回收的垃圾进行再利用；由于我们在清除阶段就已经将垃圾对象链接到空闲链表了，所以进行分配时，我们只需要根据所需要的内存空间去空闲链表中遍历查找合适大小的分块即可。伪代码如下：</p>
+<pre><code class="language-rust">fn allocation(size) {
+    let chunk = pickupChunk(size, $freeList)
+    if(chunk !== NULL) {
+        return chunk
+    } else {
+        allocationFail()
+    }
+}
+
+
+
+fn pickupChunk(size, freeList) {
+    while(freeList) {
+        if(freeList.size &gt;= size) {
+            return freeList.chunk
+        } else {
+            freeList = freeList.next
+        }
+    }
+}
+</code></pre>
+<p>这里我们使用的策略是 First-fit，即发现大于等于 size 的 chunk 时，就立即返回该 chunk，除此之外还有 Best-fit 以及 Worst-fit。其中 Best-fit 是遍历空闲链表，返回大于等于 size 的最小 chunk。而 Worst-fit 则会找到空闲链表中的最大的 chunk，然后将其分割成 mutator 申请的大小和分割后剩余的大小，其目的是将分割后剩余 chunk 最大化，但由于这种方式很容易生成大量小的 chunk，所以一般不推介使用。其流程如下：</p>
+<h3>1.1、小结</h3>
+<p>上述我们已经对 Mark-Sweeping GC 有了一个简单的了解了，这里我们可以先来讨论一下，Mark-Sweeping GC 的优劣：<br />优点：</p>
+<ul>
+<li>实现简单：其主要就是遍历所有对象，对其进行标记，从而区分活动对象与非活动对象，然后再对非活动对象的内存进行回收，放入空闲链表中，后续分配只要遍历空闲链表即可。<br />缺点：</li>
+<li>碎片化：在标记-清除算法的使用过程中会逐渐产生被细化的分块，不久后就会导致无数的小分块散布在堆的各处。我们称这种状况为碎片化（fragmentation）。而过于碎片化，则会导致内存使用效率不高，以及分配速度较慢（需要遍历的对象数量变多了）的问题。</li>
+<li>速度不佳：首先我们在进行标记以及清除，都需要去对堆内存进行遍历，其次在进行内存分配时，在最糟糕的情况下，也需要去遍历整个空闲链表。</li>
+</ul>
+<p>也正是由于 Mark-Sweeping GC 存在以上一些问题，所以实际 V8 在实现内存回收上并没有单纯的使用 Mark-Sweeping GC 来进行内存回收，而是采取了一些非常巧妙的算法来帮助我们提升 GC 的效率。由于我们在标记清除的过程中，需要对整个堆内存去进行遍历，这无疑会增大我们遍历的成本，所以在这种情况下，我们就可以运用经典的算法思想：缩小范围，来提升我们算法的运行效率，这也就是我们下一部分的主角：分代垃圾回收（Generational GC）的核心作用。</p>
+<blockquote>
+<p>需要注意的是，具体的标记-清除算法实现，大都不是进行简单的标记以及清除，而是使用了 三色标记-清除，在原有的基础上增加了一种标记（灰色）来实现并行回收、提升效率，在这里就不做过多的介绍了，其核心思想并没有太大的区别，感兴趣的同学可以自行了解一下～</p>
+</blockquote>
+<h1>二、分代垃圾回收（Generational GC）</h1>
+<p>分代垃圾回收主要通过引入“年纪”的概念，通过年纪来区分对象，从而优先回收容易成为垃圾的对象，从而提升垃圾回收效率。它基于以下几个考虑因素：</p>
+<ul>
+<li>管理堆内存的一部分要比管理整个堆内存要快。</li>
+<li>较新的对象具有较短的生存时间，而较旧的对象具有较长的生存时间。</li>
+<li>较新的对象往往相互关联，并由应用程序几乎同时进行访问。</li>
+</ul>
+<p>基于以上的考虑，分代垃圾回收会将对象分类为几代，然后针对不同的代使用不同的 GC 算法。通常我们会将刚生成的对象称之为新生代对象，而到了一定年纪（存活过一定时间）的对象成为老生代对象。</p>
+<p>在进行了根据年纪的划分后，我们就能根据实际情况，来对内存进行因地制宜的管理了：</p>
+<ul>
+<li>对于新生代对象来说，由于大部分新生代对象存活的生命周期都不会太长，针对于它们的 GC 可以在很短的时间内结束，因此我们对于新生代GC（minor GC 即小规模 GC）可以单独去进行处理；而对于那些在 Minor GC 中，能够进行存活的对象，我们就可以将上升为老生代对象，我们可以将整个上升的过程称之为 晋升（promotion）。</li>
+<li>而对于老生代对象的 GC，我们又将其称之为：老生代GC(major GC)；且因为 老生代对象 很难成为垃圾，因此我们就可以在频率上下文章：对于 Minor GC，因为其本身所管理的对象就很容易成为垃圾；因此我们可以增加调用 MinorGC 的频率，而对于 Major GC，因此我们就可以降低其频率。</li>
+</ul>
+<p>而在V8 的实现中，Major GC 主要使用的也正是 Mark-Sweep GC，这里设计的目的就在于：通过对对象进行分类，减少标记-清除所需遍历对象的数量（只需要遍历老生代对象）以及频率，从而减少标记清除所需要的时间。</p>
+<h1>三、GC复制算法（Copying GC）</h1>
+<p>上文我们提到，对于新生代对象的内存，由于其特性，因此 GC 触发的频率会比较频繁，所以在这种场景下，我们就需要一种足够高效的算法来帮助我们来管理内存了。GC复制算法（Copying GC）就属于这种算法。</p>
+<p>GC复制算法是 Marvin L. Minsky 在 1963 年研究出来的算法，距今已有半个世纪，但其核心思想仍然广泛的用于各个方面；简单来讲，就是将内存空间分为相等的两块区域，一块区域是对象空间（From），另一块区域则是空闲区域；当我们需要对新生代对象进行回收时，其实就是将对象区域的所有活动对象转移到空闲区域，而在转移完成后，对象区域剩余的则就可以视为垃圾回收掉，最后再将 From 和 To 进行反转，这样原有的空闲区域就变成新的对象区域可以继续使用了。具体步骤大致如下：<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/296173/1655105220189-00c98549-0868-4d51-9462-862b4098e32b.png#clientId=u537e9e48-652d-4&amp;from=paste&amp;height=428&amp;id=u0ec7858a&amp;name=image.png&amp;originHeight=856&amp;originWidth=1096&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=130076&amp;status=done&amp;style=none&amp;taskId=u83d1f441-6085-4d20-bc0d-9781cbc42f1&amp;title=&amp;width=548" alt="image.png" /></p>
+<blockquote>
+<p>需要注意的是，第二阶段的 Garbage 并不是连续的，这里我只是为了方便画图以及理解，所以放在一块儿，实际情况下非活动对象是散落在 From 中的。另一方面，这里没有表现出我们在分代垃圾回收所提到的“晋升”（为了减少不必要的信息的干扰）。</p>
+</blockquote>
+<p>而在分配阶段，Copying GC 也和 Mark-Sweeping GC 存在不同，前面我们有介绍，Mark-Sweeping GC 在分配内存时，大致使用的方式是：通过需要的内存大小，去遍历空闲链表，在找到满足条件的 chunk 后，进行返回。这样做的方式存在的问题在于：在最坏的情况下，我们可能需要遍历完整个空闲链表才能找到合适的空间。而 Copying GC 则不存在这种问题，如上图所示，当我们完成复制已经清理工作后，内存所摆放的位置将会变得有序，而空闲的空间也是连续的，因此我们只需要直接根据所申请的内存大小分配即可。因此较之 Mark-Sweeping GC 需要遍历空闲链表才能完成内存分配，Copying GC 的分配要简单的多，不需要进行遍历，可以理解为：O(n) 到 O(1) 的提升。<br />以上便是 Copying GC 的大致流程了，我们再来小结一下，Copying GC 的一些优缺点：<br />优点在于：</p>
+<ul>
+<li>吞吐量优秀：Mark-Sweeping GC 消耗的吞吐量是搜索活动对象（Mark）所花费的时间和搜索整体堆（Sweep）所花费的时间之和。而 Copying GC 则只对活动对象进行 Copy，所以跟一般的Mark-Sweeping GC 相比，它所需的时间会较少。也就是说，其吞吐量优秀。</li>
+<li>分配速度快。</li>
+<li>不会发生碎片化。</li>
+</ul>
+<p>缺点则是：</p>
+<ul>
+<li>堆内存使用率不高：需要将内存一分为二，实际使用的内存只有一半，因此内存的使用效率不高。</li>
+</ul>
+<p>综上所述，Copying GC 在效率上较之 Mark-Sweeping GC 会高上不少，但在内存使用率上还是存在较大缺陷，因此在V8的实践上，也并没有将其作为主要内存回收方式，而是主要用于新生代内存的管理，而且在内存分配上，新生代的内存空间也不大（空间越小，节省的空间越大），因此在 V8 中还隐含着一个条件：如果一个对象足够大时，会直接晋升到老生代中。而之前我们提到，老生代中使用的是 Mark-Sweeping GC，虽然我们使用了分代垃圾回收来减少 Mark-Sweeping GC 所需管理的对象的数量以及进行 GC 的频率，但仍然有个问题还没有解决，那就是碎片化的问题。要解决这个问题就可以引出我们的下一位主角：GC标记-压缩算法 了。</p>
+<h1>三、GC标记-压缩算法（Mark Compact GC）</h1>
+<p>Mark Compact GC 其实是 Mark-Sweeping GC 和 Copying GC 的融合体。顾名思义，Mark-Compact 也是由 Mark 和 Compact 两个阶段组成的，这里的 Mark 阶段其实和我们之前所说的，遍历堆内存进行标记是一样的，不一样的是，然后，我们在堆上移动活动对象，目的是压缩堆，以便所有活动对象都位于堆的开头，而在这些对象之后的所有内存都可以分配。因此 Mark-Compact 解决了碎片问题，通常以内存开销和更长的运行时间为代价。而具体的 Compact 算法有很多种，比如：</p>
+<ul>
+<li>Edward’s Two-finger compactions</li>
+<li>Two-Finger</li>
+<li>Lisp 2 collector</li>
+<li>ImmixGC</li>
+<li>。。。</li>
+</ul>
+<p>在这里简单的介绍一些 Lisp 2 collector，先来介绍一些它的特性：</p>
+<ul>
+<li>它是基于滑动收集器的算法（这里的滑动，指的是实现“压缩”的方式，除此之外有复制等方式）。</li>
+<li>在每个活动对象头中添加一个 <strong>forwarding</strong> 字段。</li>
+<li>这里的开销也是此类算法的主要缺陷之一。</li>
+<li>可用于不同大小的对象（有些算法只能处理相同大小的算法，比如：Two-Finger）。</li>
+</ul>
+<p>接下来，就让我们用伪代码来介绍一下这种算法吧。首先在调用上，正如上面所说的，它和 Mark-Sweeping 并无太大区别，分为两个阶段：</p>
+<pre><code class="language-rust">fn markCompact() {
+    mark() // mark all live objects, start from the roots
+    compact() // compact the heap
+}
+</code></pre>
+<p>其中 mack 阶段之前并无什么区别，因此在这里就不再赘述了，而 compact 阶段则需要三次遍历堆内存，因此可以分为三部分：</p>
+<pre><code class="language-rust">fn compact() {
+    setForwardingPtr() // compute the forwarding address
+    adjustPtr() // update the roots and references
+    moveObj() // move the objects
+}
+</code></pre>
+<p>在第一部中，我们会搜索整个堆内存，并给活动对象加上 forwarding 指针（初始情况下，我们的 forwarding 指针为 nul），大致步骤如下：</p>
+<pre><code class="language-rust">fn setForwardingPtr() {
+    let scan = $heapStart  // a ptr to search for objects in the heap
+    let newAdress = $heapStart // a ptr to the target location
+    while(scan &lt; $heapEnd) {
+        // set the pte to newAddress
+        // newAddress moves according to the object length
+        if(scan.mark == TRUE) {
+            scan.forwarding = newAddress
+            newAddress += scan.size
+        }
+        scan += scan.size
+    }
+}
+</code></pre>
+<p>这里我们需要使用 forwarding 指针来记录空间的原因在于：Copying GC 会划分出 From 空间以及 To 空间，因此我们在移动的对象时，不用去关心对象覆盖的问题，而在 Mark-Compact 中，我们是在同一个空间实现对象的压缩的，因此可能会存在移动前对象会被覆盖的问题，因此在进行移动前，我们需要事先将各对象的指针全部更新到预计要移动的地址。这样当我们要进行移动操作时，只要顺序的去移动活动对象即可。因此接着我们就需要更新指针：</p>
+<pre><code class="language-rust">fn adjustPtr() {
+    // rewrite the pointer
+    for(root in $roots) {
+        *root = *root.forwarding
+    }
+    scan = $heapStart
+    // Rewrite the pointers of live obj
+    while(scan &lt; $heapEnd) {
+        if(scan.mark == TRUE) {
+            for(child in children(scan)) {
+                *child = *child.forwarding
+            }
+            scan += scan.size
+        }
+    }
+}
+</code></pre>
+<p>经过上述的步骤，我们就进行了指针的移动，最后我们就可以搜索整个堆内存，将活动对象移动到 forwarding 指针所指向的地址，从而实现活动对象的“压缩”：</p>
+<pre><code class="language-rust">fn moveObj() {
+    let scan = $heapStart
+    while(scan &lt; $heapEnd) {
+        if(scan.mark == TRUE) {
+            let newAddress = scan.forwarding
+            move(newAddress, scan) // move the object itself there
+            newAddress.mark = FALSE // unmark it, to prepare for the next invocation of compact
+        }
+        scan += scan.size
+    }
+}
+</code></pre>
+<h3>小结</h3>
+<p>优点：</p>
+<ul>
+<li>堆内存利用效率高：Mark-Sweeping GC 相较于 Copying GC 来说，堆的利用率高上很多；而较之 Mark-Sweep GC，则不会产生碎片化，因此对于 Mark-Sweep GC 在内存利用率上也有一定优势。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>压缩效率慢：在我们上述的例子中，compact 阶段需要遍历3次堆内存，这无疑在效率上大打折扣（虽然也有一些 compact 算法只需要进行两次堆内存的遍历即可实现压缩，但也都或多或少的存在一些问题）</li>
+</ul>
+<h1>总结</h1>
+<p>自此，我们就大体的粗缆了V8 GC 的算法部分的重要组成，并对这些算法进行了一定的介绍，相信看到这里你也会对其设计的思路有了一个大体的理解，对于这些算法，我的理解是：如果没有遇到相关问题时，只需要理解其算法思想以及解决一些问题的思路即可，这才是这些算法的精华所在，譬如：</p>
+<ul>
+<li>
+如果一个算法执行效率过慢如何解决？ <ul>
+<li>根据分代垃圾回收的思想，我们可以对数据进行初步分类，再根据分类的一些特征去进行适宜的操作</li>
+</ul>
+</li>
+<li>对于需要频繁操作或者调用的数据，可以采取以空间换时间的方法，来提升效率（其实这个思想用到的地方有很多，比如JS 的 JIT(just-in-time)，CDN缓存资源的一些设计，用 map 去替换数组提升查的效率等等） </li>
+<li>等等 </li>
+</ul>
+<p>因此还是希望能从中吸取一些对自己开发能有用的东西吧，最后如果有同学对垃圾回收算法有兴趣的同学，推荐一本关于垃圾回收的书籍，相信看完后会对市面上常见的 GC 算法都有一些了解：<a href="https://book.douban.com/subject/26821357/">《垃圾回收的算法与实践》</a></p>
+<p>参考资料</p>
+<ul>
+<li><a href="https://book.douban.com/subject/26821357/">《垃圾回收的算法与实践》</a> </li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_Management">https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_Management</a> </li>
+<li><a href="https://v8.dev/blog/trash-talk">https://v8.dev/blog/trash-talk</a> </li>
+</ul>
+]]></content><link href="https://github.com/srtian/Blog/issues/37" rel="alternate"/><category term="JavaScript"/><category term="Node"/><published>2023-03-02T09:45:08+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/36</id><title>浅谈基于业务领域的文件组织形式</title><updated>2023-03-02T09:45:17.692085+00:00</updated><content type="html"><![CDATA[<p>前段时间无意中翻了一个老外对于项目代码文件组织形式的讨论，谈到了自己在基于技术组织文件所遇到的一些问题（具体文章找不见了）。那什么是基于技术的代码组织方式呢，其实很简单：就是根据具体的技术范畴，对代码进行管理。在这里随便找一个开源的前端项目举例：<br />                                             <img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1634129684336-c7d40c8b-45d9-4cce-a6df-6b075be46df9.png#clientId=u3bb9270c-e889-4&amp;from=paste&amp;height=596&amp;id=u37946f3e&amp;name=image.png&amp;originHeight=1788&amp;originWidth=592&amp;originalType=binary&amp;ratio=1&amp;size=133958&amp;status=done&amp;style=none&amp;taskId=u82e39ecb-3f6e-4f76-8825-350344d0c4b&amp;width=197.33333333333334" alt="image.png" /><br />大家可以看到，其实这个项目的文件划分以及是非常清楚了：</p>
+<ul>
+<li>components 是组件存放的地方</li>
+<li>composable 则用于存放自定义的 hook</li>
+<li>pages 就是页面</li>
+<li>services 用于处理与后端先关联的逻辑</li>
+<li>store 用于存储前端数据与状态</li>
+</ul>
+<p>可以说是一个前端 Vue 项目 MVVM 的代码组织的典范了。这要做的好处在于：</p>
+<ul>
+<li>代码分工明确，可以很清楚的知道每个文件夹下的代码所负责的职责是什么</li>
+<li>后缀统一，对强迫症患者比较友好（皮一下）</li>
+</ul>
+<p>所以很多项目都会按照这种方式去进行代码的组织与管理（包括我自己），BPM在这方面同样也是如此：<br />                                                  <img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1634130339257-396c3751-13a4-4e0c-94ed-bdf7276f962e.png#clientId=u6ae72d04-bfca-4&amp;from=paste&amp;height=359&amp;id=ue03dc514&amp;name=image.png&amp;originHeight=1076&amp;originWidth=526&amp;originalType=binary&amp;ratio=1&amp;size=120874&amp;status=done&amp;style=none&amp;taskId=u41487756-7996-4e9f-8595-709598f968b&amp;width=175.33333333333334" alt="image.png" /><br />与上面也很类似：</p>
+<ul>
+<li>components 公共组件</li>
+<li>modules 存放前端的页面代码</li>
+<li>models 主要用于数据的存储，对应 react 中的 redux 之类的状态管理</li>
+<li>services 主要用于处理后端的交互</li>
+</ul>
+<p>但其实这样的文件组织方式，同样也存在一些问题，主要有两方面：</p>
+<ol>
+<li>对于一个功能或者页面，我们无法直观的知道它相关的代码文件数量是多少，散落的哪些文件夹中。</li>
+<li>开发一个功能时，需要在多个文件夹中来回切换，也需要同时改动多个文件夹中的代码。当项目过于庞大时，往往招文件都会变成一件不容易的事情（对于这一点我深有体会）</li>
+</ol>
+<p>这也引起了我对于现在项目文件有了一些反思，加之前段时间总结了一下领域驱动设计，又回想起当年学习 Angular 所带来的一些收获，所以也开始思考：或许直接使用业务领域去组织文件会更好一些，就比如这样：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1634455409064-7ab6d177-cb2e-4440-8355-73fd99ed9147.png#clientId=u19b29901-62cc-4&amp;from=paste&amp;height=157&amp;id=u9edcf112&amp;name=image.png&amp;originHeight=472&amp;originWidth=562&amp;originalType=binary&amp;ratio=1&amp;size=71770&amp;status=done&amp;style=none&amp;taskId=u598b10e2-520d-48ad-bcf1-1f4a3c07df0&amp;width=187.33333333333334" alt="image.png" /></p>
+<p>其主要实践如下：</p>
+<ul>
+<li>坚持根据业务领域来对目录进行命名</li>
+<li>坚持为每个业务领域创建单一的 Module</li>
+<li>坚持将该业务下的所有逻辑都放在这个文件夹下</li>
+<li>坚持视图与逻辑的抽离，组件存放components里，主要负责数据驱动渲染，而逻辑通过自定义hooks的方式，放在hooks中。（需要注意的是当组件和 hooks 数目都不多时，不需要使用文件夹进行管理，直接扁平化管理会更好）</li>
+</ul>
+<p>这样做的优点在于：</p>
+<ol>
+<li>做到模块在物理层面的内聚，当需要改动一个功能时，只需要修改一个文件即可。</li>
+<li>数据驱动的组件以及逻辑聚合的hooks更符合单一职责，也更有利于测试</li>
+<li>功能结构即文件，开发人员看一眼就知道对应的功能的相关代码会在那些地方</li>
+</ol>
+<p>当然，也会存在一些缺点：</p>
+<ul>
+<li>代码可能会有所冗余，文件结构也是</li>
+</ul>
+<p>这里需要注意的是，有人会说，可能一个模块的组件被多个地方所引用，那么按照这种方式去做，岂不是也会存在一个领域下，存在其他文件的代码？这里又需要引入领域驱动设计的另外一个概念了：<strong>通用域、支撑域、核心域</strong>。虽然这个域在后端开发中，往往是很大的一个概念了，但引用至我们前端开发的范畴，我们依然可以用这个思路去思考我们模块的划分:</p>
+<ul>
+<li>核心域就是我们的关键模块，对于这些模块，我们要重点关注这些模块的可用性、性能、埋点、测试用例的完备。</li>
+<li>通用域则是被多个模块所共同需要的，对于通用域，如果涉及到有包含关系的我们可以进行有效的抽象和封装，将通用域的功能以组件或者自定义hooks的方式暴露给其他模块，从而降低耦合；而如果不存在包含关系，只是有联动关系的，我们可以定义一些领域事件，通过领域事件来更改相关状态或者使用发布订阅模式来实现相关模块的互动与关联。</li>
+<li>支持域，这部分在前端会比较少。具体到前端，可以理解为一些权限的统一审核处理等。</li>
+</ul>
+]]></content><link href="https://github.com/srtian/Blog/issues/36" rel="alternate"/><category term="DDD"/><published>2023-03-02T09:44:19+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/35</id><title>初探 Serverless</title><updated>2023-03-02T09:45:17.928816+00:00</updated><content type="html"><![CDATA[<h1>前言</h1>
 <p>这篇文章主要是讨论一下 Serverless 的发展历程以及在前端的一些落地场景，以及我在看伯克利的这篇论文：<a href="https://www2.eecs.berkeley.edu/Pubs/TechRpts/2019/EECS-2019-3.pdf">《Cloud Programming Simplified: A Berkeley View onServerless Computing》</a> 的一些记录。具体想要详细的了解 Serverless 也建议直接去阅读这篇论文，相信会有不少收获的。</p>
 <h1>一、 什么是Serverless</h1>
 <p>讨论一个技术的具体使用场景，首先需要将其做一个定义，确定我们说要讨论的范围。确定讨论的范围，归根结底，首先需要了解 Serverless 所产生的背景以及其具体以什么方式解决了什么样的问题。</p>
@@ -220,7 +482,7 @@
 <li><a href="https://mp.weixin.qq.com/s/ZJBWGxkQezCIl2MFnHIsbQ">探索 Serverless 中的前端开发模式(多场景)</a></li>
 <li><a href="https://martinfowler.com/articles/serverless.html">Serverless Architectures</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/35" rel="alternate"/><category term="Top"/><category term="Serverless"/><published>2023-03-02T09:42:20+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/34</id><title>五分钟，简单聊一聊React Component的发展历程</title><updated>2023-03-02T09:44:03.108153+00:00</updated><content type="html"><![CDATA[<hr />
+]]></content><link href="https://github.com/srtian/Blog/issues/35" rel="alternate"/><category term="Top"/><category term="Serverless"/><published>2023-03-02T09:42:20+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/34</id><title>五分钟，简单聊一聊React Component的发展历程</title><updated>2023-03-02T09:45:18.179021+00:00</updated><content type="html"><![CDATA[<hr />
 <h3>一、 前言</h3>
 <p>随着 react 最新的一个大版本中，给我们带来了 Hooks：<a href="https://reactjs.org/blog/2019/02/06/react-v16.8.0.html">React v16.8: The One With Hooks</a>，从而将 Function component 的能力提高了一大截，成功的拥有了可以与 Class component 抗衡的能力。但话说回来，虽然 Hooks 看起来很美好，最近也有不少文章都讲解了Hooks这一“黑魔法”，但技术的不断演进，本身就是一个解决以往所存在问题的过程，因此我个人认为着眼于现在，回望过去，去看一看 react component 的发展之路，去看看 Class component 以及 Function component 为什么会出现以及它们出现的意义，所要解决的问题，也对于我们全面了解 react 是很有帮助的。</p>
 <p>从 react component 的发展历程上来看，它主要是经历了一下三个阶段：</p>
@@ -394,7 +656,7 @@ export default MyComponent
 <li><a href="http://taobaofed.org/blog/2018/11/27/hooks-and-function-component/">http://taobaofed.org/blog/2018/11/27/hooks-and-function-component/</a></li>
 <li><a href="https://www.freecodecamp.org/news/this-is-why-we-need-to-bind-event-handlers-in-class-components-in-react-f7ea1a6f93eb/">https://www.freecodecamp.org/news/this-is-why-we-need-to-bind-event-handlers-in-class-components-in-react-f7ea1a6f93eb/</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/34" rel="alternate"/><category term="React"/><published>2023-03-02T09:41:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/33</id><title>Node.js爬虫初体验</title><updated>2023-03-02T09:44:03.223043+00:00</updated><content type="html"><![CDATA[<h3>一、准备阶段</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/34" rel="alternate"/><category term="React"/><published>2023-03-02T09:41:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/33</id><title>Node.js爬虫初体验</title><updated>2023-03-02T09:45:18.405625+00:00</updated><content type="html"><![CDATA[<h3>一、准备阶段</h3>
 <p>当我们需要使用Node.js进行爬虫爬取网页时，我们通常需要下载两个库request和cheerio来帮助我们队网页进行爬取：</p>
 <pre><code>cnpm i request cheerio
 </code></pre>
@@ -483,7 +745,7 @@ getMovie()
 <p>最后：</p>
 <pre><code>node doubantop25.js
 </code></pre>
-]]></content><link href="https://github.com/srtian/Blog/issues/33" rel="alternate"/><category term="Node"/><published>2023-03-02T09:41:05+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/32</id><title>Jest 入门实践</title><updated>2023-03-02T09:44:03.318052+00:00</updated><content type="html"><![CDATA[<h1>一、基础</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/33" rel="alternate"/><category term="Node"/><published>2023-03-02T09:41:05+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/32</id><title>Jest 入门实践</title><updated>2023-03-02T09:45:18.579166+00:00</updated><content type="html"><![CDATA[<h1>一、基础</h1>
 <p>前端自动化测试所带来的收益：</p>
 <ul>
 <li>杜绝由于各种疏忽而引起的功能Bug</li>
@@ -812,7 +1074,7 @@ afterAll(() =&gt; {
 </code></pre>
 <p>运行 <code>npm run test</code> ，即可得到以下的结果:<br /><img src="https://cdn.nlark.com/yuque/0/2020/png/296173/1590738307693-5d8f0642-62fe-4a21-b77c-61461b208de9.png#align=left&amp;display=inline&amp;height=313&amp;name=image.png&amp;originHeight=938&amp;originWidth=1192&amp;size=271035&amp;status=done&amp;style=none&amp;width=397.3333333333333" alt="image.png" /></p>
 <h2>2.6、Jest中的Mock</h2>
-]]></content><link href="https://github.com/srtian/Blog/issues/32" rel="alternate"/><category term="FE"/><published>2023-03-02T09:40:48+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/31</id><title>React Hooks 不完全踩坑实践指南</title><updated>2023-03-02T09:44:03.465658+00:00</updated><content type="html"><![CDATA[<h2>前言</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/32" rel="alternate"/><category term="FE"/><published>2023-03-02T09:40:48+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/31</id><title>React Hooks 不完全踩坑实践指南</title><updated>2023-03-02T09:45:18.817251+00:00</updated><content type="html"><![CDATA[<h2>前言</h2>
 <p>使用Hooks开发也有一年多了，期间踩了一些坑，也收获了一些体会，撑国庆有点时间小小的总结梳理了一下，后续有时间会一直补充。</p>
 <h1>一、常用的 Hook 以及它们的一些注意事项</h1>
 <h2>1.1 useState</h2>
@@ -974,7 +1236,7 @@ export const useCustomEvent = &lt;T&gt;({ key, callback, options = {} }: CustomE
 <li><a href="https://v3.vuejs.org/guide/composition-api-introduction.html#why-composition-api">https://v3.vuejs.org/guide/composition-api-introduction.html#why-composition-api</a></li>
 <li><a href="https://reactjs.org/docs/hooks-faq.html#are-hooks-slow-because-of-creating-functions-in-render">https://reactjs.org/docs/hooks-faq.html#are-hooks-slow-because-of-creating-functions-in-render</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/31" rel="alternate"/><category term="FE"/><category term="React"/><published>2023-03-02T09:40:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/30</id><title>七天学会Node.js——学习笔记</title><updated>2023-03-02T09:44:03.604207+00:00</updated><content type="html"><![CDATA[<p><img src="https://cdn.nlark.com/yuque/0/2020/svg/296173/1586333536866-f558ad17-fd98-42ff-980a-8fe22828c820.svg" alt="" /></p>
+]]></content><link href="https://github.com/srtian/Blog/issues/31" rel="alternate"/><category term="FE"/><category term="React"/><published>2023-03-02T09:40:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/30</id><title>七天学会Node.js——学习笔记</title><updated>2023-03-02T09:45:19.037340+00:00</updated><content type="html"><![CDATA[<p><img src="https://cdn.nlark.com/yuque/0/2020/svg/296173/1586333536866-f558ad17-fd98-42ff-980a-8fe22828c820.svg" alt="" /></p>
 <h2>一、模块</h2>
 <p>Node.js模块分为三种：</p>
 <ul>
@@ -1242,7 +1504,7 @@ http.createServer((request, response) =&gt; {
 <li>作为客户端时，发起一个HTTP客户端请求，获取服务端响应</li>
 </ul>
 <p>HTTP请求本质上是一个数据流，由请求头和请求体组成。HTTP请求在发送给服务器时，可以认为是按照从头到尾的顺序一个字节一个字节地以数据流方式发送的。而http模块创建的HTTP服务器在接收到完整的请求头后，就会调用回调函数，在回调函数中，除了可以使用request对象访问请求头数据外，还能把request对象当作一个只读数据流来访问请求体数据。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/30" rel="alternate"/><category term="Notes"/><category term="Node"/><published>2023-03-02T09:39:28+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/29</id><title>TypeScript小技巧记录</title><updated>2023-03-02T09:44:03.730029+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/30" rel="alternate"/><category term="Notes"/><category term="Node"/><published>2023-03-02T09:39:28+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/29</id><title>TypeScript小技巧记录</title><updated>2023-03-02T09:45:19.330744+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>用了TypeScript挺久了，工具链这边显著的特点就是不少模块由于业务原因亦或者是出于其他的一些考虑，后端所传输过来的数据很复杂，因此处理起来需要小心翼翼的，稍有不慎就会出现TypeError，因此之前在团队内部有做过一个小的分享，即如何使用TS让自己的数据处理更安全。这里将之前的PPT内容写成文章，此外也去除一些与具体业务有关的东西，方便后续补充以及沉淀～（话说PPT迷之找不到了，只剩下一些截图来和思维导图了）</p>
 <h4>思维导图</h4>
 <p><img src="https://cdn.nlark.com/yuque/0/2020/svg/296173/1589540812033-d9479ca5-0ca1-4a40-a22f-dd9934a0f7dc.svg" alt="" /></p>
@@ -1297,7 +1559,7 @@ const getData = (data: IDataSet) =&gt; {
 }
 </code></pre>
 <p>这样当我们不小心将key写错的时候，就会有相应的提示来:<img src="https://cdn.nlark.com/yuque/0/2020/png/296173/1589532010316-cd8cf056-4ba1-41ba-841f-ee50bc0c7b4b.png#align=left&amp;display=inline&amp;height=119&amp;name=image.png&amp;originHeight=358&amp;originWidth=1770&amp;size=76948&amp;status=done&amp;style=none&amp;width=590" alt="image.png" /><br />// 待续</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/29" rel="alternate"/><published>2023-03-02T09:38:42+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/28</id><title>TypeScript 装饰器--踩坑小日记</title><updated>2023-03-02T09:44:03.819680+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/29" rel="alternate"/><published>2023-03-02T09:38:42+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/28</id><title>TypeScript 装饰器--踩坑小日记</title><updated>2023-03-02T09:45:19.522373+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>最近在思考如何实现一个类型错误拦截的功能，意外的发现了基于装饰器实现的这个:</p>
 <blockquote>
 <p><a href="https://www.npmjs.com/package/reflect-metadata">https://www.npmjs.com/package/reflect-metadata</a></p>
@@ -1403,7 +1665,7 @@ const demo3 = new demo2()
 <blockquote>
 <p><a href="https://codesandbox.io/s/affectionate-darwin-5zmuj?file=/src/App.tsx">https://codesandbox.io/s/affectionate-darwin-5zmuj?file=/src/App.tsx</a></p>
 </blockquote>
-]]></content><link href="https://github.com/srtian/Blog/issues/28" rel="alternate"/><category term="TS"/><published>2023-03-02T09:38:21+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/27</id><title>Node 多进程和 cluster 原理</title><updated>2023-03-02T09:44:04.097354+00:00</updated><content type="html"><![CDATA[<h1>一、概述</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/28" rel="alternate"/><category term="TS"/><published>2023-03-02T09:38:21+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/27</id><title>Node 多进程和 cluster 原理</title><updated>2023-03-02T09:45:19.917957+00:00</updated><content type="html"><![CDATA[<h1>一、概述</h1>
 <p>由于node.js 主线程是单线程的，因此当我们的 node 程序运行时，通常只启动了一个进程，只能在一个 CPU 中进行运算，无法运用服务器中的多核 CPU。这显然是对于多核CPU服务器性能的浪费，因此我们需要寻求一些解决方案，来充分利用服务器的多核CPU，从而提升我们程序的运行效率。而对于这种情况，我们通常的做法就是 多进程分发策略：即主进程接收所有的请求，通过一定的负载均衡策略分发到不同的子进程中。而这一方案，其实也有两种不同的实现方式：</p>
 <ol>
 <li>主进程监听一个端口，子进程不监听端口，主进程分发请求到子进程中。这样做的好处在于，通常只需要占用一个端口，通信相对简单，转发策略也更为灵活。缺点则是实现相对会比较复杂，对主进程的稳定性也有更高的要求。</li>
@@ -1462,7 +1724,7 @@ const demo3 = new demo2()
 <li><a href="https://www.cnblogs.com/dashnowords/p/10958457.html">https://www.cnblogs.com/dashnowords/p/10958457.html</a></li>
 <li><a href="https://juejin.cn/post/6844903764093042695">https://juejin.cn/post/6844903764093042695</a></li>
 </ol>
-]]></content><link href="https://github.com/srtian/Blog/issues/27" rel="alternate"/><category term="Top"/><category term="Node"/><published>2023-03-02T09:36:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/26</id><title>《领域驱动设计》</title><updated>2023-03-02T09:44:04.228598+00:00</updated><content type="html"><![CDATA[<p>之前在接手BPM的工作时，被大佬推荐学习一下领域驱动设计，因此花了不少时间阅读了 Eric 的这本经典著作，不少章节翻了很多次，也有不少章节则选择性的放弃了（有一说一，很多模式实在不太理解），自我感觉总结起来主要有两点核心的思想：</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/27" rel="alternate"/><category term="Top"/><category term="Node"/><published>2023-03-02T09:36:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/26</id><title>《领域驱动设计》</title><updated>2023-03-02T09:45:20.137584+00:00</updated><content type="html"><![CDATA[<p>之前在接手BPM的工作时，被大佬推荐学习一下领域驱动设计，因此花了不少时间阅读了 Eric 的这本经典著作，不少章节翻了很多次，也有不少章节则选择性的放弃了（有一说一，很多模式实在不太理解），自我感觉总结起来主要有两点核心的思想：</p>
 <ol>
 <li>创造统一语言：领域专家和开发人员用同一语言讨论问题，术语和概念相统一。</li>
 <li>模型驱动开发：模型和代码相统一，并对数据的更改进行收敛以及限制。</li>
@@ -1534,7 +1796,7 @@ const demo3 = new demo2()
 <li>策略：是对于事件的响应，通常表示不属于某些聚集的逻辑，通过策略可以触发新的命令，而由策略触发的命令，被称为系统触发命令。</li>
 </ul>
 <p>而通过事件建模建立起的模型，我们就可以通过不断的事件风暴以及实践，去对事件进行收敛，从而提升我们的模型。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/26" rel="alternate"/><category term="Notes"/><category term="Basis"/><category term="Top"/><published>2023-03-02T09:34:40+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/25</id><title>《白帽子讲安全》</title><updated>2023-03-02T09:44:04.388884+00:00</updated><content type="html"><![CDATA[<h1>结构：</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/26" rel="alternate"/><category term="Notes"/><category term="Basis"/><category term="Top"/><category term="DDD"/><published>2023-03-02T09:34:40+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/25</id><title>《白帽子讲安全》</title><updated>2023-03-02T09:45:20.527098+00:00</updated><content type="html"><![CDATA[<h1>结构：</h1>
 <p><img src="https://cdn.nlark.com/yuque/0/2022/jpeg/296173/1655191089154-1918e60a-b4f9-465e-8066-4cfc3d047347.jpeg" alt="" /></p>
 <h1>一、安全世界观</h1>
 <p><strong>安全问题的本质的信任的问题</strong>。</p>
@@ -1615,7 +1877,7 @@ Secure By DefauIt原则，最为基本的原则，<ol>
 <li>获取用户的真实IP地址：JavaScript本身并没有提供获取本地IP地址的能力，有没有其他办法？一般来说，XSS攻击需要借助第三方软件来完成。比如，客户端安装了Java环境（JRE），那么XSS就可以通过调用Java Applet的接口获取客户端的本地IP地址。</li>
 <li>XSS Worm</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/25" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:33:51+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/24</id><title>《远见》</title><updated>2023-03-02T09:44:04.493026+00:00</updated><content type="html"><![CDATA[<p>职业生涯是长期的，可以分为三个阶段：</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/25" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:33:51+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/24</id><title>《远见》</title><updated>2023-03-02T09:45:20.807160+00:00</updated><content type="html"><![CDATA[<p>职业生涯是长期的，可以分为三个阶段：</p>
 <ol>
 <li>初期，积攒燃料，补足短板</li>
 <li>中期，发挥长板，合作共赢</li>
@@ -1658,7 +1920,7 @@ Secure By DefauIt原则，最为基本的原则，<ol>
 </li>
 </ol>
 <p>我们总是会低估在未来才能兑现的好处，这种现象被称为‘时间贴现’（temporal discounting）。我们都不愿意用当前的痛苦，比如更辛苦的工作、更低的薪水、更低的声望等，来换取未来的某样东西，即使未来的好处其实更加丰厚。作为人类，我们本能地不相信未来的好处能够兑现，所以会在当前对它们打很大的折扣。”克里斯还在观察中发现了“损失厌恶”（loss aversion）的效应：“人们对后果和风险看得比好的方面更加清楚。我们的美梦很模糊，但噩梦却很清晰。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/24" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:33:03+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/23</id><title>重学前端之语义化</title><updated>2023-03-02T09:44:04.613533+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/24" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:33:03+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/23</id><title>重学前端之语义化</title><updated>2023-03-02T09:45:20.991806+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>本来很早前我就自认为对前端语义化有了一些了解，但在看完winter大大的专栏后才发现，自己对语义化的理解并不是很透彻，只存在于表面的理解而已，因此决定在学习winter老师的专栏后结合自己的一些理解，好好对其进行进行一个总结。</p>
 <h3>一、语义化是什么</h3>
 <p>从维基百科所得到的结果：</p>
@@ -1759,7 +2021,7 @@ Secure By DefauIt原则，最为基本的原则，<ol>
 <li><a href="https://www.zhihu.com/question/20455165">https://www.zhihu.com/question/20455165</a></li>
 <li><a href="https://time.geekbang.org/column/intro/154">https://time.geekbang.org/column/intro/154</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/23" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:32:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/22</id><title>重学前端之JavaScript语法</title><updated>2023-03-02T09:44:04.728569+00:00</updated><content type="html"><![CDATA[<h1>一、脚本与模块</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/23" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:32:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/22</id><title>重学前端之JavaScript语法</title><updated>2023-03-02T09:45:21.197958+00:00</updated><content type="html"><![CDATA[<h1>一、脚本与模块</h1>
 <p>JavaScript中又两种源文件，这个区分从ES6开始：</p>
 <ul>
 <li>脚本</li>
@@ -1790,7 +2052,7 @@ import d, * as x from &quot;./a.js&quot;
 </code></pre>
 <p>需要注意的是使用没使用 as 的默认值永远在最前，且这里的as只是换一个名字而已，当变量被改变的时候，as所产生的值也会随着改变。</p>
 <h3>export</h3>
-]]></content><link href="https://github.com/srtian/Blog/issues/22" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:31:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/21</id><title>重学前端之JavaScript类型</title><updated>2023-03-02T09:44:04.834380+00:00</updated><content type="html"><![CDATA[<p>按照JavaScript最新标准，一共定义了7种数据类型：</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/22" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:31:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/21</id><title>重学前端之JavaScript类型</title><updated>2023-03-02T09:45:21.380481+00:00</updated><content type="html"><![CDATA[<p>按照JavaScript最新标准，一共定义了7种数据类型：</p>
 <ol>
 <li>Undefined；</li>
 <li>Null；</li>
@@ -1837,7 +2099,7 @@ import d, * as x from &quot;./a.js&quot;
 <li>Symbol。</li>
 </ul>
 <p>需要注意的是， 3 与 new Number(3)是完全不一样的，一个是Number类型一个是对象类型。而Number、String 和 Boolean这三个构造器也是两用的，当和new搭配时，会产生对象，当直接调用时，会进行强制类型转换。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/21" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:31:15+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/20</id><title>重学前端之JavaScript执行</title><updated>2023-03-02T09:44:04.964362+00:00</updated><content type="html"><![CDATA[<p>一个JavaScript引擎会常驻内存中，它等待着我们把JavaScript代码或者函数传递给它。</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/21" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:31:15+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/20</id><title>重学前端之JavaScript执行</title><updated>2023-03-02T09:45:21.607490+00:00</updated><content type="html"><![CDATA[<p>一个JavaScript引擎会常驻内存中，它等待着我们把JavaScript代码或者函数传递给它。</p>
 <p>按照JSC引擎术语，我们把宿主发起的任务称为宏观任务，将JavaScript引擎发起的任务称为微观任务。</p>
 <h2>一、宏观任务和微观任务</h2>
 <p>JavaScript 引擎等待宿主环境分配宏观任务，在操作系统中，通常等待的行为都是一个事件循环，因此在 Node 术语中，也会把这个部分称为事件循环。</p>
@@ -1935,7 +2197,7 @@ async function foo*(){
 <p>任何 JavaScript 语句是可以加标签的，在语句前加冒号即可</p>
 <pre><code class="language-javascript"> firstStatement: var i = 1;
 </code></pre>
-]]></content><link href="https://github.com/srtian/Blog/issues/20" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:30:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/19</id><title>重学前端之JavaScript对象</title><updated>2023-03-02T09:44:05.068700+00:00</updated><content type="html"><![CDATA[<h2>一、基于对象的JavaScript</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/20" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:30:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/19</id><title>重学前端之JavaScript对象</title><updated>2023-03-02T09:45:21.796380+00:00</updated><content type="html"><![CDATA[<h2>一、基于对象的JavaScript</h2>
 <p>JavaScript是一门基于对象的编程语言，其标准对基于对象的定义如下：</p>
 <blockquote>
 <p>语言和宿主的基础设施由对象来提供，并且 JavaScript 程序即是一系列互相通讯的对象集合”</p>
@@ -2198,7 +2460,7 @@ o.getValue(); //100
 <li>类型数组和数组缓冲区：跟内存块相关联，下标运算比较特殊。</li>
 <li>bind 后的 function：跟原来的函数相关联。</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/19" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:30:02+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/18</id><title>《写给大家看的色彩书：设计配色基础》</title><updated>2023-03-02T09:44:05.192551+00:00</updated><content type="html"><![CDATA[<p>《写给大家看的色彩书：设计配色基础》国内著名由设计师梁景红编写，主要谈及配色的基础技巧和必备理念。非常适合初学配色的专业人士来学习。仔细阅读此书后，我对配色有了非常全面的认识，也巩固了之前零散的色彩知识。很希望和大家交流分享。<br />这是一本非常不错的配色入门书，从色彩最基础的知识点讲起，逐渐深入到专业的理论，层层递进。配合相应的案例，虽然大部分在讲理论，却也一点都不枯燥。</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/19" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:30:02+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/18</id><title>《写给大家看的色彩书：设计配色基础》</title><updated>2023-03-02T09:45:22.127431+00:00</updated><content type="html"><![CDATA[<p>《写给大家看的色彩书：设计配色基础》国内著名由设计师梁景红编写，主要谈及配色的基础技巧和必备理念。非常适合初学配色的专业人士来学习。仔细阅读此书后，我对配色有了非常全面的认识，也巩固了之前零散的色彩知识。很希望和大家交流分享。<br />这是一本非常不错的配色入门书，从色彩最基础的知识点讲起，逐渐深入到专业的理论，层层递进。配合相应的案例，虽然大部分在讲理论，却也一点都不枯燥。</p>
 <p>之前都认为，配色只是一种感觉，只要根据常识和已有的审美走就可以了。其实不然，学习了解专业的理论知识，不仅能让你在配色过程中更加有自信，而且可以举一反三，从现有的经验推导至未知的领域，如果在工作上遇到以前没有接触过的内容，也可以轻松入手。</p>
 <p>本书的主要内容包括：<br />1.颜色的基础只是，配色基础原则：不超过三种颜色<br />2.主色、辅色、点缀色的使用<br />3.色彩集合：图像、文字、图案、图表都可以看成一种颜色<br />4.在不确定的时候，使用黑、白、灰调色<br />5.基础色调：相近色调或对比色调<br />6.根据色彩情感的关键词，选择主色<br />7.根据关键词选择色调，避开主色谈配色<br />8.色彩素材的实践运用：提取色彩——分析色彩——实践运用<br />9.突破对立色彩感受：从一端到另一端</p>
 <p><strong>chapter1</strong><br /><strong>色彩基础，让你拥有一个清晰的色彩概念</strong>：使用H（色相）S（饱和度）B（明度）的色相环调色</p>
@@ -2266,7 +2528,7 @@ o.getValue(); //100
 <p>**</p>
 <p><strong>chapter9突破对立色彩的感受：从一端到另一端的选择</strong><br /><strong>搭配出一种情感效果，很可能就无法得到另一种情感效果，在这种情况下就要合适的取舍，明确具体的配色目的。</strong><br /><strong>同样是浊色➕明色，不同的颜色搭配，可以得出不同情感的颜色搭配效果。可以是活泼的，可以是平静的，也可以平时，华丽的。</strong><br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910153027-db451be0-0970-40ea-8f59-3245d0972894.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=u1eb6f1ef&amp;name=image.png&amp;originHeight=466&amp;originWidth=770&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=307472&amp;status=done&amp;style=none&amp;taskId=u35601eab-b6d3-4d7d-92fd-bf99d489b42&amp;title=" alt="image.png" /></p>
 <p>最后：<br />色彩有冷暖之分，有性别之分，也有不同的感情基调。所以把色彩也当成有灵魂的“人”，在搭配的过程中，时时刻刻考虑到不同的色彩搭配在一起要“和谐相处”，才能构建出和谐的画面。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/18" rel="alternate"/><category term="Web"/><category term="产品"/><published>2023-03-02T09:28:33+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/17</id><title>关于B端产品的一些思考以及体会</title><updated>2023-03-02T09:44:05.342834+00:00</updated><content type="html"><![CDATA[<p>这半年来，由于某些原因，我在开发之余，也承担了平台前端产品需求的挖掘，设计和梳理的工作，也做成了诸如公开数据集模块，模型自动化等需求的前端交互设计或者是总体的业务流程设计，有些还挺不错，受到了一些好评。做着做着就由感而发，也对B端的产品设计有了一些自己的思考，因此总结一下这半年来，在这方面的体会以及心路历程。</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/18" rel="alternate"/><category term="Web"/><category term="产品"/><published>2023-03-02T09:28:33+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/17</id><title>关于B端产品的一些思考以及体会</title><updated>2023-03-02T09:45:22.379337+00:00</updated><content type="html"><![CDATA[<p>这半年来，由于某些原因，我在开发之余，也承担了平台前端产品需求的挖掘，设计和梳理的工作，也做成了诸如公开数据集模块，模型自动化等需求的前端交互设计或者是总体的业务流程设计，有些还挺不错，受到了一些好评。做着做着就由感而发，也对B端的产品设计有了一些自己的思考，因此总结一下这半年来，在这方面的体会以及心路历程。</p>
 <h2>一、AI 产品的不确定性</h2>
 <p>相较于传统的B端产品，AI平台最大的特点就是不确定，这个不确定表现在很多方面。譬如：</p>
 <ul>
@@ -2320,7 +2582,7 @@ o.getValue(); //100
 <li>文字 or 邮件关怀</li>
 <li>图形</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/17" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:47+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/16</id><title>关于 BPM 的一些记录与思考</title><updated>2023-03-02T09:44:05.565906+00:00</updated><content type="html"><![CDATA[<h1>BPMN2 及相关概念</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/17" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:47+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/16</id><title>关于 BPM 的一些记录与思考</title><updated>2023-03-02T09:45:22.601824+00:00</updated><content type="html"><![CDATA[<h1>BPMN2 及相关概念</h1>
 <p>去年刚入职的时候，学习了 AWS 的关于 BPMN2 的一些文档，输出一下自己对于文档的理解：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1622973941077-4798449f-2c53-465d-8e83-17e0dd2e48a7.png#clientId=ud374fb22-d32f-4&amp;from=paste&amp;height=500&amp;id=uec962f42&amp;name=image.png&amp;originHeight=744&amp;originWidth=2356&amp;originalType=binary&amp;ratio=1&amp;size=298008&amp;status=done&amp;style=none&amp;taskId=ue26f5275-bf9c-4914-a7f9-16be68b24f6&amp;width=1583" alt="image.png" /></p>
 <h1>流程</h1>
 <h2>流程是什么？</h2>
@@ -2351,7 +2613,7 @@ o.getValue(); //100
 <li>客户：在新的流程体系里，一切流程都是面向客户的，反思流程是否走完了全过程，实现了客户的价值与要求（需要回答两个问题：1. 对客户要有清晰的认知，客户是谁？客户端的需求是什么？2.用什么去实现客户价值）</li>
 </ol>
 <p>从上述必要构成出发，从领域驱动设计的角度来讲，我们对于一个流程的模型，或许可以如此抽象：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1624416125530-6d61e184-1a47-43e3-98d6-5e2308d0ad92.png#clientId=uc9de569a-6de0-4&amp;from=paste&amp;height=954&amp;id=ufd557560&amp;name=image.png&amp;originHeight=954&amp;originWidth=2090&amp;originalType=binary&amp;ratio=1&amp;size=126280&amp;status=done&amp;style=none&amp;taskId=udd88226e-99f5-48c5-b212-be8e0852401&amp;width=2090" alt="image.png" /></p>
-]]></content><link href="https://github.com/srtian/Blog/issues/16" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:22+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/15</id><title>浅谈 Rust 前端应用开发</title><updated>2023-03-02T09:44:05.677620+00:00</updated><content type="html"><![CDATA[<p>随着技术的不断演进，近年来愈来越多的非前端开发语言诸如：Rust、Go 等也开始进入前端/跨端应用开发领域，并收获了不小的开源社区的关注。因此本次在此尝试对基于 Rust 的一些 前端/跨端 应用开发进行一些分析，来分析一下这种开发模式的技术基础、基本方案等情况，由于篇幅原因将分为两部分：第一部分，主要讨论 Rust 前端应用开发的基本现状、原理以及收益等，而第二部分则会讨论号称 Electron 终结者的 Tauri 的基本情况、最大卖点、基本架构组成等。
+]]></content><link href="https://github.com/srtian/Blog/issues/16" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:22+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/15</id><title>浅谈 Rust 前端应用开发</title><updated>2023-03-02T09:45:22.821003+00:00</updated><content type="html"><![CDATA[<p>随着技术的不断演进，近年来愈来越多的非前端开发语言诸如：Rust、Go 等也开始进入前端/跨端应用开发领域，并收获了不小的开源社区的关注。因此本次在此尝试对基于 Rust 的一些 前端/跨端 应用开发进行一些分析，来分析一下这种开发模式的技术基础、基本方案等情况，由于篇幅原因将分为两部分：第一部分，主要讨论 Rust 前端应用开发的基本现状、原理以及收益等，而第二部分则会讨论号称 Electron 终结者的 Tauri 的基本情况、最大卖点、基本架构组成等。
 <a name="rwzVM"></a></p>
 <h1>一、兴起的基础</h1>
 <p>对于前端应用开发有一定了解的同学应该知道，可以在浏览器端运行的编程语言主要有两种：</p>
@@ -2467,7 +2729,7 @@ pub struct Element {
 <li><a href="https://rustwasm.github.io/docs/book/introduction.html">https://rustwasm.github.io/docs/book/introduction.html</a></li>
 <li><a href="https://webassembly.org/docs/security/">https://webassembly.org/docs/security/</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/15" rel="alternate"/><category term="Top"/><category term="Rust"/><published>2023-03-02T09:25:44+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/14</id><title>浅谈 Rust 所有权机制</title><updated>2023-03-02T09:44:05.790135+00:00</updated><content type="html"><![CDATA[<h1>一、什么是 stack 和 heap</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/15" rel="alternate"/><category term="Top"/><category term="Rust"/><published>2023-03-02T09:25:44+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/14</id><title>浅谈 Rust 所有权机制</title><updated>2023-03-02T09:45:23.243233+00:00</updated><content type="html"><![CDATA[<h1>一、什么是 stack 和 heap</h1>
 <p>stack 和 heap 都用于变量的内存存储。对于大多数的编程人员来讲，都无需去关心内存是如何分配到 heap 和 stack 中的（实际上，对于 stack   和 heap 的区别，也很多人并不是很清楚）。譬如在JavaScript中，大多数人知道一个结论：基本数据类型放在 stack 中，而引用数据类型放在 heap 里面。但一旦问到，为何需要这样进行划分的时候，少有人可以说上一二。</p>
 <p>那它们到底有什么区别呢？ 首先它们虽然都是可供代码使用的内存，但结构是不同的。 stack是一个线性的数据结构，以放入值得顺序存储值并以相反的顺序取出值，也就是我们常说的：后进先出。其数据的输入和取出，则通常被称为 进栈、出栈。由于 <code>stack</code>是线性的数据结构，所以 stack 中的所有数据都是必须占用<strong>已知且固定</strong>的大小。</p>
 <p>而 heap 则是一个非线性的数据结构，是缺乏组织的。因此对于一些在初始时，大小未知或大小可能发生变化的数据，则可以放在堆中。当我们想要在堆中存储一些数据时，我们通常其实是请求一块大小合适的空间，然后操作系统在堆中搜索一个足够大的空间以匹配我们所请求的内存量，并将其标记为已用，并返回一个表示该位置地址的 **指针， **而这个指针也通常被存在 stack 中。这个过程也就是 <strong>堆内存分配</strong>，也常被称为 <strong>内存分配。</strong></p>
@@ -2629,7 +2891,7 @@ fn main() {
 }
 </code></pre>
 <p>如此我们就能将借用的变量进行返回来。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/14" rel="alternate"/><category term="Rust"/><published>2023-03-02T08:09:43+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/13</id><title>产品可用性之容错处理设计及实践</title><updated>2023-03-02T09:44:05.903449+00:00</updated><content type="html"><![CDATA[<h2>一、为什么说容错处理很重要</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/14" rel="alternate"/><category term="Rust"/><published>2023-03-02T08:09:43+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/13</id><title>产品可用性之容错处理设计及实践</title><updated>2023-03-02T09:45:23.472983+00:00</updated><content type="html"><![CDATA[<h2>一、为什么说容错处理很重要</h2>
 <p>B端产品由于其自身就具有一定的业务复杂度以及上手成本，因此在可用性方面，做好容错处理至关重要。一个好的容错处理既可以有效的提升用户使用产品的顺畅程度以及使用效率，也可以避免一些产品设计不够完善的问题的暴露。<br />
 <br />下图是我在学习尼尔森十大可用性原则时所做的学习思维导图：<br /></p>
 <p><img src="https://cdn.nlark.com/yuque/0/2020/svg/296173/1591757022787-9e968925-89d4-4a08-ad73-1f24b61a8298.svg" alt="" />从上述的思维导图我们不难发现，尼尔森所强调的可用性原则里面，绝大部分其实都和容错处理息息相关。我个人理解，容错处理我们可以在一下几个方面进行设计：</p>
@@ -2682,7 +2944,7 @@ fn main() {
 <br />类似的例子还有很多，比如PS，LR等操作软件，也提供了历史记录的功能，可以轻松回退的相应的地方<br /></p>
 <h2>结语</h2>
 <p>上述只是我个人在实践过程中的一些体会以及方法论，因为大家的产品特征不同，所要解决的问题，目标用户群体也不同。因此在具体的设计时，要根据自身的特点，去因地制宜的设计合理的容错处理机制。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/13" rel="alternate"/><category term="Web"/><category term="产品"/><category term="Top"/><published>2020-06-10T07:07:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/12</id><title>简述JavaScript模块化编程</title><updated>2023-03-02T09:44:06.079872+00:00</updated><content type="html"><![CDATA[<h1>简述JavaScript模块化编程</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/13" rel="alternate"/><category term="Web"/><category term="产品"/><category term="Top"/><published>2020-06-10T07:07:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/12</id><title>简述JavaScript模块化编程</title><updated>2023-03-02T09:45:23.698691+00:00</updated><content type="html"><![CDATA[<h1>简述JavaScript模块化编程</h1>
 <p>在早期编写JavaScript时，我们只需在 script 标签内写入JavaScript的代码就可以满足我们对页面交互的需要了。但随着时间的推移，时代的发展，原本的那种简单粗暴的编写方式所带来的诸如逻辑混乱，页面复杂，可维护性差，全局变量暴露等问题接踵而至，前辈们为了解决这些问题提出了很种的解决方案，其中之一就是JavaScript模块化编程。总的来说，它有以下四种优点：<br /></p>
 <ol>
 <li>解决项目中的全局变量污染的问题。</li>
@@ -3037,7 +3299,7 @@ export { add as add1 } from ./example.js; //以add这个名称导入，再以add
 export *  from ./example.js;
 </code></pre>
 <p><br />// 最后求一波暑期前端实习的坑位-_-||</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/12" rel="alternate"/><category term="JavaScript"/><published>2020-04-07T07:51:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/11</id><title>聊一聊常见的浏览器端数据存储方案</title><updated>2023-03-02T09:44:06.224313+00:00</updated><content type="html"><![CDATA[<h3>前言：</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/12" rel="alternate"/><category term="JavaScript"/><published>2020-04-07T07:51:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/11</id><title>聊一聊常见的浏览器端数据存储方案</title><updated>2023-03-02T09:45:23.956237+00:00</updated><content type="html"><![CDATA[<h3>前言：</h3>
 <p>五一假期在撸代码的时候用到cookie，感觉对浏览器的数据存储方案不是很了解，因此又去翻了两本大头书中间的关于浏览器端数据存储的章节，同时去MDN逛了逛，又看了几篇文章，算是对浏览器的数据存储方案有了一个了解，在此总结一下！</p>
 <h2>浏览器存储</h2>
 <p>在浏览器端存储数据对我们是很有用，这相当于赋予浏览器记忆的功能，可以纪录用户的所有状态信息，增强用户体验。比如当纪录用户的登陆状态时，可以让用户能够更快的进行访问，而不是每次登陆时都需要去进行繁琐的操作。</p>
@@ -3279,7 +3541,7 @@ request.onupgradeneededd = function(e) {
 <h4>3. indexedDB受同源策略的限制</h4>
 <p>indexedDB使用同源原则，这意味着它把存储空间绑定到了创建它的站点的源（典型情况下，就是站点的域或是子域），所以它不能被任何其他源访问。要着重指出的一点是 IndexedDB 不适用于从另一个站点加载进框架的内容 (不管是 <frame> 还是 &lt;iframe>。这是一项安全措施。详情请看这个：<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=595307">https://bugzilla.mozilla.org/show_bug.cgi?id=595307</a></p>
 <p>除此之外，IndexedDB还存在诸如：不适合存储敏感数据，相较于web存储机制的操作更加复杂等问题，这都是我们在使用IndexedDB时需要考虑的。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/11" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T10:04:17+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/10</id><title>React高阶组件的那些事，了解一下？</title><updated>2023-03-02T09:44:06.386535+00:00</updated><content type="html"><![CDATA[<h4>前言</h4>
+]]></content><link href="https://github.com/srtian/Blog/issues/11" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T10:04:17+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/10</id><title>React高阶组件的那些事，了解一下？</title><updated>2023-03-02T09:45:24.239366+00:00</updated><content type="html"><![CDATA[<h4>前言</h4>
 <p>学习react已经有一段时间了，期间在阅读官方文档的基础上也看了不少文章，但感觉对很多东西的理解还是不够深刻，因此这段时间又在撸一个基于react全家桶的聊天App（现在还在瞎78写的阶段，在往这个聊天App这个方向写），通过实践倒是对react相关技术栈有了更为深刻的理解，而在使用react-redux的过程中，发现connect好像还挺有意思的，也真实感受到了高阶组件所带来的便利，出于自己写项目本身就是为了学习的目的，因此对高阶组件又进行了一番学习。写下这篇文章主要是对高阶组件的知识进行一个梳理与总结，如有错误疏漏之处，敬请指出，不胜感激。</p>
 <h2>初识高阶组件</h2>
 <p><em>要学习高阶组件首先我们要知道的就是高阶组件是什么，解决了什么样的问题。</em></p>
@@ -3502,7 +3764,7 @@ class HOC extends ... {
 <p>实际上我们不用自己来写getDisplayName这个函数，recompose 提供了这个函数，我们只要使用即可。</p>
 <h4>结尾语</h4>
 <p>我们其他要注意的就是<a href="https://react.bootcss.com/react/docs/higher-order-components.html">官方文档</a>所说的几个约定与相关规范，在此我就不一一赘述了，感兴趣的可以自己去看看。最后很感谢能看到这里的朋友，因为水平有限，如果有错误敬请指正，十分感激！</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/10" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T10:00:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/9</id><title> 从 HTML5 WebSocket 到 Socket.io</title><updated>2023-03-02T09:44:06.507454+00:00</updated><content type="html"><![CDATA[<h2>HTML5 WebSocket概述</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/10" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T10:00:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/9</id><title> 从 HTML5 WebSocket 到 Socket.io</title><updated>2023-03-02T09:45:24.490634+00:00</updated><content type="html"><![CDATA[<h2>HTML5 WebSocket概述</h2>
 <p>作为新一代的web标准，HTML5为我们提供了很多有用的东西，比如canvas，本地存储（已经分离出去了），多媒体编程接口，当然还有我们的WebSocket。WebSocket是HTML5开始提供的一种浏览器与服务器间进行全双工通讯（full-duplex）的网络技术，可以传输基于信息的文本和二进制的数据。它于2011年被IETF定为标准 RFC 6455，同时WebSocket API也被W3C定为标准。</p>
 <h2>一、WebSocket产生的背景</h2>
 <h3>1.黎明前的黑暗——实时web应用的需求</h3>
@@ -3668,7 +3930,7 @@ client.on(&#x27;disconnect&#x27;,function(){
 <pre><code class="language-JavaScript">import io from &#x27;socket.io-client&#x27;
 const socket = io(&#x27;ws://localhost:8080&#x27;)
 </code></pre>
-]]></content><link href="https://github.com/srtian/Blog/issues/9" rel="alternate"/><category term="FE"/><category term="Web"/><category term="JavaScript"/><published>2019-09-28T09:59:23+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/8</id><title>Redux 源码解读</title><updated>2023-03-02T09:44:06.616997+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/9" rel="alternate"/><category term="FE"/><category term="Web"/><category term="JavaScript"/><published>2019-09-28T09:59:23+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/8</id><title>Redux 源码解读</title><updated>2023-03-02T09:45:24.724123+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>作为React全家桶的一份子，Redux为react提供了严谨周密的状态管理。但Redux本身是有点难度的，虽然学习了React也有一段时间了，自我感觉算是入了门，也知道redux的大概流程。但其背后诸如creatstore,applymiddleware等API背后到底发生了什么事情，我其实还是不怎么了解的，因此最近花了几天时间阅读了Redux的源码，写下文章纪录一下自己看源码的一些理解。（redux4.0版本）</p>
 <h3>一、源码结构</h3>
 <p>Redux是出了名的短小精悍（恩，这个形容很贴切），只有2kb大小，且没有任何依赖。它将所有的脏活累活都交给了中间件去处理，自己保持着很好的纯洁性。再加上redux作者在redux的源码上，也附加了大量的注释，因此redux的源码读起来还是不算难的。</p>
@@ -4009,7 +4271,7 @@ export default function bindActionCreators(actionCreators, dispatch) {
 </code></pre>
 <h3>小节</h3>
 <p>看一遍redux，感觉设计十分巧秒，不愧是大佬的作品。这次看代码只是初看，往后随着自己学习的不断深入，还需多加研究，绝对还能得到更多的体会。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/8" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:58:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/7</id><title>深入理解 Redux 中间件——走马观花</title><updated>2023-03-02T09:44:06.746224+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/8" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:58:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/7</id><title>深入理解 Redux 中间件——走马观花</title><updated>2023-03-02T09:45:25.132753+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>最近几天对 redux 的中间件进行了一番梳理，又看了 redux-saga 的文档，和 redux-thunk 和 redux-promise 的源码，结合前段时间看的redux的源码的一些思考，感觉对 redux 中间件的有了更加深刻的认识，因此总结一下。</p>
 <h3>一、Redux中间件机制</h3>
 <p>Redux本身就提供了非常强大的数据流管理功能，但这并不是它唯一的强大之处，它还提供了利用中间件来扩展自身功能，以满足用户的开发需求。首先我们来看中间件的定义：</p>
@@ -4186,7 +4448,7 @@ function loadInitData(ip) {
 <li>《深入浅出React和Redux》</li>
 <li>《深入React技术栈》</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/7" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:56:41+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/6</id><title>初探 HTML5 Web Workers</title><updated>2023-03-02T09:44:06.857141+00:00</updated><content type="html"><![CDATA[<h3>一、Web Workers是什么</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/7" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:56:41+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/6</id><title>初探 HTML5 Web Workers</title><updated>2023-03-02T09:45:25.338630+00:00</updated><content type="html"><![CDATA[<h3>一、Web Workers是什么</h3>
 <blockquote>
 <p>Web Worker为Web内容在后台线程中运行脚本提供了一种简单的方法。线程可以执行任务而不干扰用户界面。此外，他们可以使用XMLHttpRequest执行 I/O (尽管responseXML和通道属性总是为空)。一旦创建， 一个worker 可以将消息发送到创建它的JavaScript代码, 通过将消息发布到该代码指定的事件处理程序 (反之亦然)。 —— MDN</p>
 </blockquote>
@@ -4314,7 +4576,7 @@ worker.postMessage({
 <li><a href="https://qiutc.me/post/the-multithread-in-javascript-web-worker.html">https://qiutc.me/post/the-multithread-in-javascript-web-worker.html</a></li>
 <li><a href="https://juejin.im/post/5a90233bf265da4e92683de3">https://juejin.im/post/5a90233bf265da4e92683de3</a></li>
 </ol>
-]]></content><link href="https://github.com/srtian/Blog/issues/6" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:54:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/5</id><title>浅谈HTTP缓存</title><updated>2023-03-02T09:44:07.251180+00:00</updated><content type="html"><![CDATA[<h3>一、HTTP缓存概述（HTTP Cache）</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/6" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:54:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/5</id><title>浅谈HTTP缓存</title><updated>2023-03-02T09:45:25.530084+00:00</updated><content type="html"><![CDATA[<h3>一、HTTP缓存概述（HTTP Cache）</h3>
 <p>要搞清楚HTTP缓存，首先当然是要搞清楚缓存是啥，按照MDN的描述，缓存是这样的：</p>
 <blockquote>
 <p>缓存是一种保存资源副本并在下次请求时直接使用该副本的技术。当 web 缓存发现请求的资源已经被存储，它会拦截请求，返回该资源的拷贝，而不会去源服务器重新下载。这样带来的好处有：缓解服务器端压力，提升性能(获取资源的耗时更短了)。对于网站来说，缓存是达到高性能的重要组成部分。缓存需要合理配置，因为并不是所有资源都是永久不变的：重要的是对一个资源的缓存应截止到其下一次发生改变（即不能缓存过期的资源）。</p>
@@ -4382,7 +4644,7 @@ cache-control: max-age=691200
 <li><a href="https://www.cnblogs.com/lyzg/p/5125934.html#_label3">https://www.cnblogs.com/lyzg/p/5125934.html#_label3</a></li>
 <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching_FAQ">https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching_FAQ</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/5" rel="alternate"/><category term="FE"/><category term="Web"/><category term="Basis"/><published>2019-09-28T09:52:53+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/4</id><title>五分钟，简单聊一聊React Component的发展历程</title><updated>2023-03-02T09:44:07.354360+00:00</updated><content type="html"><![CDATA[<h3>一、 前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/5" rel="alternate"/><category term="FE"/><category term="Web"/><category term="Basis"/><published>2019-09-28T09:52:53+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/4</id><title>五分钟，简单聊一聊React Component的发展历程</title><updated>2023-03-02T09:45:25.759053+00:00</updated><content type="html"><![CDATA[<h3>一、 前言</h3>
 <p>随着 react 最新的一个大版本中，给我们带来了 Hooks：<a href="https://reactjs.org/blog/2019/02/06/react-v16.8.0.html">React v16.8: The One With Hooks</a>，从而将 Function component 的能力提高了一大截，成功的拥有了可以与 Class component 抗衡的能力。但话说回来，虽然 Hooks 看起来很美好，最近也有不少文章都讲解了Hooks这一“黑魔法”，但技术的不断演进，本身就是一个解决以往所存在问题的过程，因此我个人认为着眼于现在，回望过去，去看一看 react component 的发展之路，去看看 Class component 以及 Function component 为什么会出现以及它们出现的意义，所要解决的问题，也对于我们全面了解 react 是很有帮助的。</p>
 <p>从 react component 的发展历程上来看，它主要是经历了一下三个阶段：</p>
 <ol>
@@ -4555,7 +4817,7 @@ export default MyComponent
 <li><a href="http://taobaofed.org/blog/2018/11/27/hooks-and-function-component/">http://taobaofed.org/blog/2018/11/27/hooks-and-function-component/</a></li>
 <li><a href="https://www.freecodecamp.org/news/this-is-why-we-need-to-bind-event-handlers-in-class-components-in-react-f7ea1a6f93eb/">https://www.freecodecamp.org/news/this-is-why-we-need-to-bind-event-handlers-in-class-components-in-react-f7ea1a6f93eb/</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/4" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:52:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/3</id><title>浅析 Rematch 源码</title><updated>2023-03-02T09:44:07.479875+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/4" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:52:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/3</id><title>浅析 Rematch 源码</title><updated>2023-03-02T09:45:25.963377+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>入职后公司用的技术栈还是 react，但状态管理由我原本熟悉的 redux 进化成了在 redux 基础上封装而成的 rematch。用起来也着实方便不少，减少了很多样板代码的编写，同时也不用引入中间件来管理异步请求了，但在用起来的过程中难免就会引起了我对 rematch 的一些小疑问：</p>
 <ul>
 <li>它是怎么封装 诸如action creator这些以往在 redux 中繁琐的“样本”代码的？</li>
@@ -4958,7 +5220,7 @@ export default function({
 <li><a href="https://juejin.im/post/5b13fe155188257d6c046728">Redux 源码解读</a></li>
 <li><a href="https://juejin.im/post/5b237569f265da59bf79f3e9">深入理解 Redux 中间件</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/3" rel="alternate"/><category term="FE"/><category term="JavaScript"/><category term="React"/><published>2019-09-28T09:41:20+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/2</id><title>《Don't Make Me Think》读书笔记</title><updated>2023-03-02T09:44:07.579980+00:00</updated><content type="html"><![CDATA[<h3>一、别让我思考</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/3" rel="alternate"/><category term="FE"/><category term="JavaScript"/><category term="React"/><published>2019-09-28T09:41:20+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/2</id><title>《Don't Make Me Think》读书笔记</title><updated>2023-03-02T09:45:26.176323+00:00</updated><content type="html"><![CDATA[<h3>一、别让我思考</h3>
 <p>网页的易用性最重要的一点就是无需用户去思考。这也代表着交互一般劲量趋向于简单化，平整化，以减少用户的认知负担，减少对用户的干扰。</p>
 <p>示例：亚马逊搜索没有提及一定要去搜索什么内容，只会对你所输入的进行分析，这样就会减少用户的思考的成本（淘宝也是如此，通过自然语言处理来对用户的输入进行分析）</p>
 <p>比较典型的地方：</p>
@@ -5116,7 +5378,7 @@ export default function({
 <li>容易从错误中恢复</li>
 <li>如有不确定，记得道歉</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/2" rel="alternate"/><category term="Notes"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:34:00+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/1</id><title>浅析浏览器进程发展历程</title><updated>2023-03-02T09:44:07.817703+00:00</updated><content type="html"><![CDATA[<h3>一、浏览器的多进程概括</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/2" rel="alternate"/><category term="Notes"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:34:00+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/1</id><title>浅析浏览器进程发展历程</title><updated>2023-03-02T09:45:26.402624+00:00</updated><content type="html"><![CDATA[<h3>一、浏览器的多进程概括</h3>
 <p>要想搞明白什么是浏览器的多进程，首先得知道什么是进程。按照维基百科的说法：</p>
 <blockquote>
 <p>进程是计算机中已运行程序的实体。进程是线程的容器，进程本身不运行。程序本身只是指令的集合，进程才是程序（指令）的真正运行。每个程序可以有多个进程，每个进程都有自己的资源。</p>

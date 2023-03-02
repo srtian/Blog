@@ -20,11 +20,11 @@ and have some understanding of Saas and tob businesses. Besides development, I a
 - [浅谈 Rust 前端应用开发](https://github.com/srtian/Blog/issues/15)--2023-03-02
 - [产品可用性之容错处理设计及实践](https://github.com/srtian/Blog/issues/13)--2020-06-10
 ## 最近更新
+- [浅析 V8 GC 算法](https://github.com/srtian/Blog/issues/37)--2023-03-02
+- [浅谈基于业务领域的文件组织形式](https://github.com/srtian/Blog/issues/36)--2023-03-02
 - [初探 Serverless](https://github.com/srtian/Blog/issues/35)--2023-03-02
 - [五分钟，简单聊一聊React Component的发展历程](https://github.com/srtian/Blog/issues/34)--2023-03-02
 - [Node.js爬虫初体验](https://github.com/srtian/Blog/issues/33)--2023-03-02
-- [Jest 入门实践](https://github.com/srtian/Blog/issues/32)--2023-03-02
-- [React Hooks 不完全踩坑实践指南](https://github.com/srtian/Blog/issues/31)--2023-03-02
 ## Web
 - [《写给大家看的色彩书：设计配色基础》](https://github.com/srtian/Blog/issues/18)--2023-03-02
 - [产品可用性之容错处理设计及实践](https://github.com/srtian/Blog/issues/13)--2020-06-10
@@ -39,6 +39,7 @@ and have some understanding of Saas and tob businesses. Besides development, I a
 </details>
 
 ## JavaScript
+- [浅析 V8 GC 算法](https://github.com/srtian/Blog/issues/37)--2023-03-02
 - [简述JavaScript模块化编程](https://github.com/srtian/Blog/issues/12)--2020-04-07
 - [ 从 HTML5 WebSocket 到 Socket.io](https://github.com/srtian/Blog/issues/9)--2019-09-28
 - [浅析 Rematch 源码](https://github.com/srtian/Blog/issues/3)--2019-09-28
@@ -90,7 +91,11 @@ and have some understanding of Saas and tob businesses. Besides development, I a
 ## Basis
 - [《领域驱动设计》](https://github.com/srtian/Blog/issues/26)--2023-03-02
 - [浅谈HTTP缓存](https://github.com/srtian/Blog/issues/5)--2019-09-28
+## DDD
+- [浅谈基于业务领域的文件组织形式](https://github.com/srtian/Blog/issues/36)--2023-03-02
+- [《领域驱动设计》](https://github.com/srtian/Blog/issues/26)--2023-03-02
 ## Node
+- [浅析 V8 GC 算法](https://github.com/srtian/Blog/issues/37)--2023-03-02
 - [Node.js爬虫初体验](https://github.com/srtian/Blog/issues/33)--2023-03-02
 - [七天学会Node.js——学习笔记](https://github.com/srtian/Blog/issues/30)--2023-03-02
 - [Node 多进程和 cluster 原理](https://github.com/srtian/Blog/issues/27)--2023-03-02
