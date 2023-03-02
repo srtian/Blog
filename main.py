@@ -8,9 +8,18 @@ from github import Github
 from feedgen.feed import FeedGenerator
 from lxml.etree import CDATA
 
-MD_HEAD = """## Gitblog
-My personal blog using issues and GitHub Actions (随意转载，无需署名)
-[RSS Feed](https://raw.githubusercontent.com/{repo_name}/master/feed.xml)
+MD_HEAD = """# About Me
+Hi, I'm srtian. Now I'm working as a senior software development engineer in ByteDance's security department. Before that,
+I worked for Kwai and Horizon Robot. I mainly focus on Web development,
+and have some understanding of Saas and tob businesses. Besides development, I am also interested in travel, photography and reading. Have a good day~
+
+---
+- WebChat: Srtiann
+- Email: shenruotian@outlook.com
+- GitHub: [@Srtian](https://github.com/srtian)
+- Instagram: [@Srtian](https://www.instagram.com/srtian96/?next=%2F)
+- ex-blog: [YueQue](https://www.yuque.com/srtian)
+- Some Record: [Record](https://github.com/srtian/Record)
 """
 
 BACKUP_DIR = "BACKUP"
