@@ -1,5 +1,226 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<feed xmlns="http://www.w3.org/2005/Atom"><id>https://github.com/srtian/Blog</id><title>RSS feed of srtian's Blog</title><updated>2023-03-02T09:41:43.916229+00:00</updated><author><name>srtian</name><email>shenruotian@gmail.com</email></author><link href="https://github.com/srtian/Blog"/><link href="https://raw.githubusercontent.com/srtian/Blog/master/feed.xml" rel="self"/><generator uri="https://lkiesow.github.io/python-feedgen" version="0.9.0">python-feedgen</generator><entry><id>https://github.com/srtian/Blog/issues/34</id><title>五分钟，简单聊一聊React Component的发展历程</title><updated>2023-03-02T09:41:44.221039+00:00</updated><content type="html"><![CDATA[<hr />
+<feed xmlns="http://www.w3.org/2005/Atom"><id>https://github.com/srtian/Blog</id><title>RSS feed of srtian's Blog</title><updated>2023-03-02T09:44:02.660054+00:00</updated><author><name>srtian</name><email>shenruotian@gmail.com</email></author><link href="https://github.com/srtian/Blog"/><link href="https://raw.githubusercontent.com/srtian/Blog/master/feed.xml" rel="self"/><generator uri="https://lkiesow.github.io/python-feedgen" version="0.9.0">python-feedgen</generator><entry><id>https://github.com/srtian/Blog/issues/35</id><title>初探 Serverless</title><updated>2023-03-02T09:44:02.968216+00:00</updated><content type="html"><![CDATA[<h1>前言</h1>
+<p>这篇文章主要是讨论一下 Serverless 的发展历程以及在前端的一些落地场景，以及我在看伯克利的这篇论文：<a href="https://www2.eecs.berkeley.edu/Pubs/TechRpts/2019/EECS-2019-3.pdf">《Cloud Programming Simplified: A Berkeley View onServerless Computing》</a> 的一些记录。具体想要详细的了解 Serverless 也建议直接去阅读这篇论文，相信会有不少收获的。</p>
+<h1>一、 什么是Serverless</h1>
+<p>讨论一个技术的具体使用场景，首先需要将其做一个定义，确定我们说要讨论的范围。确定讨论的范围，归根结底，首先需要了解 Serverless 所产生的背景以及其具体以什么方式解决了什么样的问题。</p>
+<h2>1.1 Serverless的背景以及历史</h2>
+<p>在云计算已经普及的今天， Serverless 已经是一个在各大技术论坛或者演讲上，出现频率非常高的技术名词了，在前端也不例外，几乎每个大的前端技术演讲会议，都会或多或少的提到它，并扯扯它和前端的一些交集或者结合的落地场景。</p>
+<p>但溯本回源，Serverless 的产生，归根结底是要解决什么问题呢？要回答这个问题，我们不得不去回顾云计算的发展历程。在云计算刚刚兴起的时候，市场上主流的两种云服务方案分别是亚马逊推出的 EC2 和谷歌推出的 App Engine (GAE)。这两种方案分别代表了两种思路：</p>
+<ul>
+<li>EC2 选择了提供底层基础，它的实例使用起来和一台物理服务器十分类似，没有任何的额外功能，你可以在上面运行任何类型、任何语言的服务；</li>
+<li>GAE 则选择了提供高层抽象，包括令人印象深刻的自动缩扩容等能力，但同时对用户能够运行的代码做出了限制 —— 要想获得这些特性，就必须使用google提供的储存和计算服务，遵循相应的规范。</li>
+</ul>
+<p>最终市场选择了AWS的 EC2，这主要是因为开发者们更倾向于使用和自己本地开发环境相同的环境来运行服务，这样做，开发好的代码基本不需要什么改动就可以轻易部署到云实例上去。但这种模式虽然极大的给予了开发者自由度，但也意味着几乎所有的运维操作都交由开发者自己去解决，**因此大部分的云服务的使用者在使用云服务的同时，不得不承担复杂的运维成本以及较低的硬件使用率。**Serverless的产生就是为了解决这些问题而产生的。<br />              <img src="https://cdn.nlark.com/yuque/0/2020/png/296173/1609222420346-a2281eb5-256e-4772-9948-f75899359077.png#align=left&amp;display=inline&amp;height=120&amp;originHeight=120&amp;originWidth=619&amp;size=0&amp;status=done&amp;style=none&amp;width=619" alt="" /></p>
+<p>而回顾Serverless 这一名词的诞生，需要我们将时间线拉回到2012年，这是 Serverless 这一技术名词第一次出现在大家视野中的时间点。Ken 在他的文章：<a href="https://readwrite.com/2012/10/15/why-the-future-of-software-and-apps-is-serverless/?__cf_chl_jschl_tk__=2e846b39e94ae54ff7af11c6e12cb23f8f25fff2-1607050809-0-AeqVODmUcZBg0qZXOwSFRle_BUy9MciSv0JnWmm3Hiqwj2-jHoGnAd3tb9GI8WGww5wC-kPL2RcPcFxrTmFLM-QwUsy_sAoBzJQvnAd11W-zLVnwQUloDUsQeUzNGO2neSMmiOB_4XA9rsRy9DE4qgHGygZNjzSb2QkSA98u_ugxxccMRFFUnB0qxmdhqZJqXMzAVdQq57i9Y38dFbBqut4mfF378CGZDOZDlS1QXb_kdHB1Tcagke3c35Lhw6kNQU7OsMrEEddGEfntErkpHrMQCdEaIR8RJLsYxhI65MKw2GQuKXLNRaMlgQBWUJD9nN_fQ90SLMZJA0sTzk6bhoSNKkQokDchXc9eEzSmzK25xmynuK9oAdQ5r4D1oic601OCwrW1A64_1lGYxNA_wdaDtifGDxDztBlzsNCj2rmRyx7qAZlvPGa4nLjSFc1BtQ">Why The Future Of Software And Apps Is Serverless</a> 中提出了 Serverless 之一名词，开始让 Serverless 进入大家的视野。引述这篇文章的一段话，算是对 Serverless 早期定义的解释：</p>
+<blockquote>
+</blockquote>
+<h2>Thinking Serverless</h2>
+<blockquote>
+<p>The phrase “serverless” doesn’t mean servers are no longer involved. It simply means that developers no longer have to think that much about them. Computing resources get used as services without having to manage around physical capacities or limits.</p>
+</blockquote>
+<p>总的来说，这个时间点的 Serverless，更多的是关于对于计算机底层运维方面的抽象的讨论，也算是去思考如何解决 <strong>复杂的运维成本</strong> 这一问题。</p>
+<p>而真正让 Serverless 名声大噪的是 Amazon 在 2015 年发布的 <a href="https://aws.amazon.com/lambda/">AWS Lambda</a> ，提出了 **Cloud Function **的概念，让 Serverless 提高的一个全新的高度，它不仅仅通过抽象底层运维能力，来为云开发者提供运维能力的支持以及抽象，并且提供快速缩扩容以及按调用收费的机制，提升了资源利用率，降低使用者的成本。这也是第一个真正意义上我们今天所说的 Faas 平台，正是从那一年开始， Serverless 开始成为国际上炙手可热的名词，出现在各大云计算的会议之上。</p>
+<p>而到了2017年，国内的 Paas 以及 laas 平台，也推出了自己的函数计算平台，加入到了 Serverless 的推广以及建设当中。</p>
+<h2>1.2 Serverless 的技术组成</h2>
+<p>明确了Serverless的产生背景，当今社区上对Serverless的定义其实还是比较模糊的，但总的来讲，翻阅一些较为权威的资料，大体上还是较为相同的，譬如号称 Serverless 白皮书的：<a href="https://www2.eecs.berkeley.edu/Pubs/TechRpts/2019/EECS-2019-3.pdf">《Cloud Programming Simplified: A Berkeley View onServerless Computing》</a>中关于 Serverless 的定义是：</p>
+<blockquote>
+<p>Put simply, serverless computing  =  FaaS + BaaS，In our definition, for a service to be considered serverless, it must scaleautomatically with no need for explicit provisioning, and be billed based on usage.</p>
+</blockquote>
+<p>提取几个关键字：serverless = FaaS + Baas，且必须能够实现<strong>自动缩扩容</strong>和<strong>按使用量计费</strong>。另外在<a href="https://martinfowler.com/articles/serverless.html">《Serverless Architectures》</a>，也是将 Serverless 视为 FaaS 和 BaaS 的结合：<br /><img src="https://cdn.nlark.com/yuque/0/2020/png/296173/1609222420359-1a7ee5f1-7dee-4149-974e-57f72f976876.png#align=left&amp;display=inline&amp;height=716&amp;originHeight=716&amp;originWidth=3140&amp;size=0&amp;status=done&amp;style=none&amp;width=3140" alt="" /><br />因此在这里，我们在此讨论的 Serverless 也就按照 Serverless = FaaS + BaaS 的定义了（但其实我个人更倾向于将Serverless视为一种降低开发门槛，提升开发效率的架构模式） ：<br /><img src="https://cdn.nlark.com/yuque/0/2020/png/296173/1609222420339-9f4633da-87bb-4642-892b-ad06da227022.png#align=left&amp;display=inline&amp;height=396&amp;originHeight=396&amp;originWidth=762&amp;size=0&amp;status=done&amp;style=none&amp;width=762" alt="" /></p>
+<p>其中 FaaS（Functions as a Service）直译过来就是：函数即服务。FaaS 是无服务器计算的一种形式，当前使用最广泛的是 AWS 的 Lambada 函数计算平台。FaaS 本质上是一种事件驱动的由消息触发的服务，FaaS 供应商一般会集成各种同步和异步的事件源，通过订阅这些事件源，可以突发或者定期的触发函数运行。</p>
+<p>而这里的函数，则是提供了比微服务更微细小的程序单元。比如，我们可以将微服务按照某个用户特定的一系列CRUD操作进行拆分。而在FaaS下，用户的每个操作，比如创建这一操作，就对应着我们在函数计算平台上的一个函数，只要通过触发器触发它，就可以执行操作事件。下面这个图就很形象的体现函数计算的特点：<br /><img src="https://cdn.nlark.com/yuque/0/2020/gif/296173/1609222420356-0994bff1-0304-457f-a6f1-597941071c2e.gif#align=left&amp;display=inline&amp;height=457&amp;originHeight=457&amp;originWidth=1024&amp;size=0&amp;status=done&amp;style=none&amp;width=1024" alt="" /><br />（图来自：<a href="https://developer.aliyun.com/article/574222">https://developer.aliyun.com/article/574222</a>）<br />而 BaaS（Backend-as-a-Service）后端即服务，它是基于 API 的第三方服务，用于实现应用程序中的后端功能核心功能，包含常用的数据库、对象存储、消息队列、日志服务等等。</p>
+<p>下面这个表格列举了一下传统的Serverful(也就是云计算)和 Serverless 的区别：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th align="left"><br />特性</th>
+<th align="left">AWS Serverless 云计算</th>
+<th align="left">AWS Serverful 云计算</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>开发者</td>
+<td align="left">何时运行程序</td>
+<td align="left">由用户根据事件自行选择</td>
+<td align="left">除非明确停止，否则会一直运行。</td>
+</tr>
+<tr>
+<td></td>
+<td align="left">编程语言</td>
+<td align="left">JavaScript、Python、Java、Go等有限的语言</td>
+<td align="left">任何语言</td>
+</tr>
+<tr>
+<td></td>
+<td align="left">程序状态</td>
+<td align="left">保存在存储（无状态）</td>
+<td align="left">任何地方（有状态或无状态）</td>
+</tr>
+<tr>
+<td></td>
+<td align="left">最大内存大小</td>
+<td align="left">0.125~3GiB（用户自行选择）</td>
+<td align="left">0.5~1952GiB（用户自行选择）</td>
+</tr>
+<tr>
+<td></td>
+<td align="left">最大本地存储</td>
+<td align="left">0.5GiB</td>
+<td align="left">0~3600 GiB （用户自行选择）</td>
+</tr>
+<tr>
+<td></td>
+<td align="left">最长运行时间</td>
+<td align="left">900秒</td>
+<td align="left">随意</td>
+</tr>
+<tr>
+<td></td>
+<td align="left">最小计费单元</td>
+<td align="left">0.1秒</td>
+<td align="left">60秒</td>
+</tr>
+<tr>
+<td></td>
+<td align="left">每计费单元价格</td>
+<td align="left">$0.0000002</td>
+<td align="left">$0.0000867 - $0.4080000</td>
+</tr>
+<tr>
+<td></td>
+<td align="left">操作系统和库</td>
+<td align="left">云供应商选择</td>
+<td align="left">用户自行选择</td>
+</tr>
+<tr>
+<td>系统管理员</td>
+<td align="left">服务器实例</td>
+<td align="left">云供应商选择</td>
+<td align="left">用户自行选择</td>
+</tr>
+<tr>
+<td></td>
+<td align="left">扩展</td>
+<td align="left">云供应商负责提供</td>
+<td align="left">用户自己负责</td>
+</tr>
+<tr>
+<td></td>
+<td align="left">部署</td>
+<td align="left">云供应商负责提供</td>
+<td align="left">用户自己负责</td>
+</tr>
+<tr>
+<td></td>
+<td align="left">容错</td>
+<td align="left">云供应商负责提供</td>
+<td align="left">用户自己负责</td>
+</tr>
+<tr>
+<td></td>
+<td align="left">监控</td>
+<td align="left">云供应商负责提供</td>
+<td align="left">用户自己负责</td>
+</tr>
+<tr>
+<td></td>
+<td align="left">日志</td>
+<td align="left">云供应商负责提供</td>
+<td align="left">用户自己负责</td>
+</tr>
+</tbody></table><p>转自：<a href="https://www2.eecs.berkeley.edu/Pubs/TechRpts/2019/EECS-2019-3.pdf">https://www2.eecs.berkeley.edu/Pubs/TechRpts/2019/EECS-2019-3.pdf</a></p>
+<p>总的来说，Serverless 相较于 serverful，有以下三个方面的巨大改变：</p>
+<ol>
+<li>弱化了存储与计算之间的联系。将服务的存储以及计算分开部署以及计费，服务的存储变成独立的服务，而计算则变得无状态化，从而变得更有利于调度和缩扩容。</li>
+<li>代码的执行不再需要手动分配资源，只需提供一份代码，其他的资源的调度以及分配都交由Serverless平台去完成</li>
+<li>按使用量计费。 serverless按照服务的使用量进行计费，而不是像传统的serverful服务那样，按照使用的资源（ECS实例、VM的规格等）计费。</li>
+</ol>
+<h1>二、 Serverless和前端结合的落地场景</h1>
+<p>从实用角度出发，那Serverless从前端开发工程师的角度来讲，可以让我们更专注于业务开发，一些常见的服务端问题，我们都可以交给 Serverless 来解决，比如：</p>
+<ul>
+<li>Serverless 不需要关心内存泄露等问题, 因为它的云函数服务是使用完即销毁</li>
+<li>Serverless 不需要我们自己搭建服务端环境, 也不需要我们自己去预估流程的峰值，以及关心资源的利用率、容灾等问题，因为它自身可以根据流量快速扩所容，并按真实使用量计费</li>
+<li>Serverless 有完善的配套服务, 如云数据库, 云消息队列, 云存储等, 充分利用这些服务，可以极大的扩宽我们能力边界，做我们之前没时间或者没有能力去做的事情</li>
+</ul>
+<p>下面是伯克利的论文中，所列举出来的关于2018年 Serverless 的具体使用场景的分布：<br /><img src="https://cdn.nlark.com/yuque/0/2020/png/296173/1609222420363-ca0bc095-1655-4e6f-bcbe-aa40008bc59e.png#align=left&amp;display=inline&amp;height=610&amp;originHeight=610&amp;originWidth=1700&amp;size=0&amp;status=done&amp;style=none&amp;width=1700" alt="" /></p>
+<h2>2.1 小程序云开发</h2>
+<p>按照上图中，Serverless使用场景中，占比最高的就是Web和API 服务，这方面比较典型的开发场景就是 小程序的云开发了。</p>
+<p>在传统的小程序开发流程中，我们需要前端工程师对小程序端进行开发，而后端工程师进行服务端的开发。如果开发的团队规模较小，可能还需要前端工程师去将服务端的开发也完成了，但由于小程序的后端开发其实和其他的后端应用本质上是一样的，需要关心应用的负载均衡、容灾、监控等一些运维操作，但这些知识又触及到了大部分前端工程师的知识盲点，往往需要很多时间去了解和学习，完成的产品也往往不尽人意。</p>
+<p>而在基于 Serverless 的小程序云开发的模式下，就可以做到让开发者只关心业务需求的实现，由一个前端工程师参与开发，在不具备完善的运维知识的情况下，使用云开发平台将后端功能封装而成的 BaaS 就可以完成整个应用的开发。以下是微信小程序云开发所提供的几项基础能力支持：</p>
+<table>
+<thead>
+<tr>
+<th align="left">能力</th>
+<th align="left">作用</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">云函数</td>
+<td align="left">无需自建服务器</td>
+<td align="left">在云端运行的代码，微信私有协议天然鉴权，开发者只需编写自身业务逻辑代码</td>
+</tr>
+<tr>
+<td align="left">数据库</td>
+<td align="left">无需自建数据库</td>
+<td align="left">一个既可在小程序前端操作，也能在云函数中读写的 JSON 数据库</td>
+</tr>
+<tr>
+<td align="left">存储</td>
+<td align="left">无需自建存储和 CDN</td>
+<td align="left">在小程序前端直接上传/下载云端文件，在云开发控制台可视化管理</td>
+</tr>
+<tr>
+<td align="left">云调用</td>
+<td align="left">原生微信服务集成</td>
+<td align="left">基于云函数免鉴权使用小程序开放接口的能力，包括服务端调用、获取开放数据等能力</td>
+</tr>
+<tr>
+<td align="left"><a href="https://developers.weixin.qq.com/miniprogram/dev/wxcloud/guide/wechatpay.html">微信支付</a></td>
+<td align="left">免鉴权原生使用微信支付</td>
+<td align="left">免签名计算、免 access_token 使用微信支付能力</td>
+</tr>
+</tbody></table><p>（详情可看：<a href="https://developers.weixin.qq.com/miniprogram/dev/wxcloud/basis/getting-started.html">微信官方文档-小程序-云开发</a>）</p>
+<p>具体实践案例：<a href="https://github.com/cloudkits/miniprogram-foodmap">miniprogram-foodmap</a></p>
+<h2>2.2. 数据编排，从 BFF 到 SFF</h2>
+<p>BFF对于大多数的前端工程师已经不再陌生了，它的产生主要是基于：对不同的设备可能需要使用不同的后端 API，也可能对数据格式以及数据量有不同的要求。因此BFF所做的工作通常就是将后端的数据以及接口进行编排，适配成前端所需要的数据格式，提供给前端进行使用。具体的模型如下：<br />            <img src="https://cdn.nlark.com/yuque/0/2020/png/296173/1609222420346-a243867b-83de-45e1-b430-cc084a2c60a3.png#align=left&amp;display=inline&amp;height=419&amp;originHeight=419&amp;originWidth=628&amp;size=0&amp;status=done&amp;style=none&amp;width=628" alt="" /><br />不过虽然这种模式虽然解决了接口协调的问题，但也带来了一些新的问题：</p>
+<ul>
+<li>如果针对不同的设备都需要开发一个BFF应用，这无疑回面临一些重复开发的成本，</li>
+<li>BFF 层通常是由善于处理高网络 I/O 的Node 应用负责的，而传统的服务端运维 Node 应用还是较重的，需要我们去购买虚拟机或者将其托管到 PaaS 平台，但基于微服务高可用的诉求，就会导致服务器资源的浪费。</li>
+<li>前端之前完全不用去考虑并发的情况，只需关系页面的渲染，而在加入BFF后，高并发的压力也集中到了 BFF 上。</li>
+</ul>
+<p>而 Serverless 则可以帮我们很好的解决这些问题。由于 BFF 只是做无状态的数据编排，因此它天然就是适合 FaaS 这种按需分配，弹性扩容，用完即毁的模型进行替换。我们可以使用一个个函数来实现对各个接口的聚合或者裁剪，前端向 BFF 发起请求，就相当于是 FaaS 的一个 HTTP 触发器，触发一个函数的执行，由这个函数来针对具体的业务逻辑来发起请求获取数据，再对数据进行聚合以及裁剪，最后将数据返回给前端。<br />                  <img src="https://cdn.nlark.com/yuque/0/2020/png/296173/1609222420357-7d75c80a-0417-462b-920a-c1815e765645.png#align=left&amp;display=inline&amp;height=497&amp;originHeight=497&amp;originWidth=570&amp;size=0&amp;status=done&amp;style=none&amp;width=570" alt="" /><br />这样做的好处就是一方面可以节省资源，降低成本，不用去一直维持Node服务的虚拟机的开销，另一方面，将运维的压力也从BFF转移到来FaaS 服务，前端无需关心BFF的维护以及并发等场景。此外，我们还可以在FaaS平台中去充分利用云服务提供商所提供的其他功能，从而实现服务编排，增强我们在SFF层的能力。</p>
+<h1>三、 Serverless 的未来与展望</h1>
+<h2>3.1  对 Serverless 的“火”保持理性</h2>
+<p>虽然现在 Serverless 这一概念已经被市场上的相关利益者吹的很火，仿佛已经马上就可以对传统的开发方式进行革命，但作为普通的开发者，我们需要保持相对理性，才能更为客观的去了解一门技术。</p>
+<p>首先，Serverless 是真的已经火热到家喻户晓，成为一个大家都应该去了解的技术，去拥抱的开发模式了么？<br />下面是 Google Trends 对于三个名词的搜索热度的排名，可以看到与前端强相关的两个技术名词 graphql 和 BFF 都比 Serverless 的搜索热度高出不少。<img src="https://cdn.nlark.com/yuque/0/2020/png/296173/1609222420351-9d8ad812-36d8-47df-956a-904514f78727.png#align=left&amp;display=inline&amp;height=1272&amp;originHeight=1272&amp;originWidth=2596&amp;size=0&amp;status=done&amp;style=none&amp;width=2596" alt="" /><br />其次，作为一个出自美国的技术，同时AWS 的 <a href="https://aws.amazon.com/lambda/">Lambda</a> 无论在技术成熟度已经服务水平都比国内走在前面的情况下，按 Google Trends 区域搜索热度划分，也很有意思：其中中国以100遥遥领先于其他国家，第二名的新加坡才17的热度。</p>
+<p>因此，至少从这个数据来看，Serverless 在国内的关注度远高于国外的（当然这也与国内的实际项目发展需求有关，serverless天然的具有一定的落定场景）</p>
+<h2>3.2 当前 Serverless 的局限性</h2>
+<p>那 Serverless 在经过这几年的发展，为什么没有真正的火起来呢，首先就是这项技术本身所存在的一些问题，下列是伯克利的论文中列举出的 Serverless 现今仍然存在的四个不足，或者说是阻碍它快速发展的因素：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2020/jpeg/296173/1609222420371-d265405f-9e81-42f1-8250-0c46e946f5f7.jpeg#align=left&amp;display=inline&amp;height=556&amp;originHeight=556&amp;originWidth=1382&amp;size=0&amp;status=done&amp;style=none&amp;width=1382" alt="" />而正式由于存在以上一些原因，导致复杂的企业级的业务系统无法基于现在这么简单的Faas来实现，只有一些业务场景较为简单的应用才是它现在的落地场景，而一个架构思想想要成为主流，得到快速的发展，必须要应用在企业主要流程的业务系统之中，只有这样，才能体现它在企业中所带来的巨大价值与收益。因此如何结合Serverless 的思想，落地于企业的核心业务场景中去，展现其真正价值，为企业带来降本增效的收益，并沉淀出强大的 Serverless 开发框架以及最佳实践，才能将 Serverless 推向云时代的主流架构这一宝座。</p>
+<h2>3.3 Serverless 的发展展望</h2>
+<p>这里直接引用伯克利对与 Serverless 计算在未来十年的发展展望以及趋势的预测：<br /><img src="https://cdn.nlark.com/yuque/0/2020/png/296173/1609222420424-9060ab13-8ea7-4cf1-b324-140a11070b65.png#align=left&amp;display=inline&amp;height=1044&amp;originHeight=1044&amp;originWidth=1746&amp;size=0&amp;status=done&amp;style=none&amp;width=1746" alt="" /><br />其中对我个人印象最为深刻的是最后一条：</p>
+<blockquote>
+<p>Serverless computing will become the default computing paradigm of the Cloud Era, largely replacing serverful computing and thereby bringing closure to the Client-Server Era.</p>
+</blockquote>
+<p>简单来说，他们认为 Serverless Computing 将会成为云时代的默认范例大面积的替换传统的云计算，并革命掉客户端-服务器端的时代。我对这个展望个人是比较认同的，因为从宏观角度来看，技术的发展必定是一个不断降低门槛的过程，抽象底层逻辑，提升开发效率的过程。而 Serverless 架构的核心思想，按照 AWS 的 CTO 的说法, Serverless 作为一个架构模式，要做的到的是：</p>
+<blockquote>
+<p>&quot;Everyone wants just to focus on business logic.&quot;</p>
+</blockquote>
+<p>而这也真符合商业发展对降本增效的诉求，因此从这个角度出发，Serverless架构的落地以及推广，未来可期。</p>
+<p>参考链接</p>
+<ul>
+<li><a href="https://www2.eecs.berkeley.edu/Pubs/TechRpts/2019/EECS-2019-3.pdf">《Cloud Programming Simplified: A Berkeley View onServerless Computing》</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/77095720">Serverless For Frontend 前世今生</a></li>
+<li><a href="https://aws.amazon.com/cn/blogs/china/iaas-faas-serverless/">从IaaS到FaaS—— Serverless架构的前世今生</a></li>
+<li><a href="https://developer.aliyun.com/article/574222">当我们在聊Serverless时你应该知道这些</a></li>
+<li><a href="https://mp.weixin.qq.com/s/ZJBWGxkQezCIl2MFnHIsbQ">探索 Serverless 中的前端开发模式(多场景)</a></li>
+<li><a href="https://martinfowler.com/articles/serverless.html">Serverless Architectures</a></li>
+</ul>
+]]></content><link href="https://github.com/srtian/Blog/issues/35" rel="alternate"/><category term="Top"/><category term="Serverless"/><published>2023-03-02T09:42:20+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/34</id><title>五分钟，简单聊一聊React Component的发展历程</title><updated>2023-03-02T09:44:03.108153+00:00</updated><content type="html"><![CDATA[<hr />
 <h3>一、 前言</h3>
 <p>随着 react 最新的一个大版本中，给我们带来了 Hooks：<a href="https://reactjs.org/blog/2019/02/06/react-v16.8.0.html">React v16.8: The One With Hooks</a>，从而将 Function component 的能力提高了一大截，成功的拥有了可以与 Class component 抗衡的能力。但话说回来，虽然 Hooks 看起来很美好，最近也有不少文章都讲解了Hooks这一“黑魔法”，但技术的不断演进，本身就是一个解决以往所存在问题的过程，因此我个人认为着眼于现在，回望过去，去看一看 react component 的发展之路，去看看 Class component 以及 Function component 为什么会出现以及它们出现的意义，所要解决的问题，也对于我们全面了解 react 是很有帮助的。</p>
 <p>从 react component 的发展历程上来看，它主要是经历了一下三个阶段：</p>
@@ -173,7 +394,7 @@ export default MyComponent
 <li><a href="http://taobaofed.org/blog/2018/11/27/hooks-and-function-component/">http://taobaofed.org/blog/2018/11/27/hooks-and-function-component/</a></li>
 <li><a href="https://www.freecodecamp.org/news/this-is-why-we-need-to-bind-event-handlers-in-class-components-in-react-f7ea1a6f93eb/">https://www.freecodecamp.org/news/this-is-why-we-need-to-bind-event-handlers-in-class-components-in-react-f7ea1a6f93eb/</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/34" rel="alternate"/><published>2023-03-02T09:41:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/33</id><title>Node.js爬虫初体验</title><updated>2023-03-02T09:41:44.347536+00:00</updated><content type="html"><![CDATA[<h3>一、准备阶段</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/34" rel="alternate"/><category term="React"/><published>2023-03-02T09:41:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/33</id><title>Node.js爬虫初体验</title><updated>2023-03-02T09:44:03.223043+00:00</updated><content type="html"><![CDATA[<h3>一、准备阶段</h3>
 <p>当我们需要使用Node.js进行爬虫爬取网页时，我们通常需要下载两个库request和cheerio来帮助我们队网页进行爬取：</p>
 <pre><code>cnpm i request cheerio
 </code></pre>
@@ -262,7 +483,7 @@ getMovie()
 <p>最后：</p>
 <pre><code>node doubantop25.js
 </code></pre>
-]]></content><link href="https://github.com/srtian/Blog/issues/33" rel="alternate"/><category term="Node"/><published>2023-03-02T09:41:05+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/32</id><title>Jest 入门实践</title><updated>2023-03-02T09:41:44.496618+00:00</updated><content type="html"><![CDATA[<h1>一、基础</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/33" rel="alternate"/><category term="Node"/><published>2023-03-02T09:41:05+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/32</id><title>Jest 入门实践</title><updated>2023-03-02T09:44:03.318052+00:00</updated><content type="html"><![CDATA[<h1>一、基础</h1>
 <p>前端自动化测试所带来的收益：</p>
 <ul>
 <li>杜绝由于各种疏忽而引起的功能Bug</li>
@@ -591,7 +812,7 @@ afterAll(() =&gt; {
 </code></pre>
 <p>运行 <code>npm run test</code> ，即可得到以下的结果:<br /><img src="https://cdn.nlark.com/yuque/0/2020/png/296173/1590738307693-5d8f0642-62fe-4a21-b77c-61461b208de9.png#align=left&amp;display=inline&amp;height=313&amp;name=image.png&amp;originHeight=938&amp;originWidth=1192&amp;size=271035&amp;status=done&amp;style=none&amp;width=397.3333333333333" alt="image.png" /></p>
 <h2>2.6、Jest中的Mock</h2>
-]]></content><link href="https://github.com/srtian/Blog/issues/32" rel="alternate"/><category term="FE"/><published>2023-03-02T09:40:48+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/31</id><title>React Hooks 不完全踩坑实践指南</title><updated>2023-03-02T09:41:44.676324+00:00</updated><content type="html"><![CDATA[<h2>前言</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/32" rel="alternate"/><category term="FE"/><published>2023-03-02T09:40:48+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/31</id><title>React Hooks 不完全踩坑实践指南</title><updated>2023-03-02T09:44:03.465658+00:00</updated><content type="html"><![CDATA[<h2>前言</h2>
 <p>使用Hooks开发也有一年多了，期间踩了一些坑，也收获了一些体会，撑国庆有点时间小小的总结梳理了一下，后续有时间会一直补充。</p>
 <h1>一、常用的 Hook 以及它们的一些注意事项</h1>
 <h2>1.1 useState</h2>
@@ -753,7 +974,7 @@ export const useCustomEvent = &lt;T&gt;({ key, callback, options = {} }: CustomE
 <li><a href="https://v3.vuejs.org/guide/composition-api-introduction.html#why-composition-api">https://v3.vuejs.org/guide/composition-api-introduction.html#why-composition-api</a></li>
 <li><a href="https://reactjs.org/docs/hooks-faq.html#are-hooks-slow-because-of-creating-functions-in-render">https://reactjs.org/docs/hooks-faq.html#are-hooks-slow-because-of-creating-functions-in-render</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/31" rel="alternate"/><category term="FE"/><category term="React"/><published>2023-03-02T09:40:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/30</id><title>七天学会Node.js——学习笔记</title><updated>2023-03-02T09:41:44.800191+00:00</updated><content type="html"><![CDATA[<p><img src="https://cdn.nlark.com/yuque/0/2020/svg/296173/1586333536866-f558ad17-fd98-42ff-980a-8fe22828c820.svg" alt="" /></p>
+]]></content><link href="https://github.com/srtian/Blog/issues/31" rel="alternate"/><category term="FE"/><category term="React"/><published>2023-03-02T09:40:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/30</id><title>七天学会Node.js——学习笔记</title><updated>2023-03-02T09:44:03.604207+00:00</updated><content type="html"><![CDATA[<p><img src="https://cdn.nlark.com/yuque/0/2020/svg/296173/1586333536866-f558ad17-fd98-42ff-980a-8fe22828c820.svg" alt="" /></p>
 <h2>一、模块</h2>
 <p>Node.js模块分为三种：</p>
 <ul>
@@ -1021,7 +1242,7 @@ http.createServer((request, response) =&gt; {
 <li>作为客户端时，发起一个HTTP客户端请求，获取服务端响应</li>
 </ul>
 <p>HTTP请求本质上是一个数据流，由请求头和请求体组成。HTTP请求在发送给服务器时，可以认为是按照从头到尾的顺序一个字节一个字节地以数据流方式发送的。而http模块创建的HTTP服务器在接收到完整的请求头后，就会调用回调函数，在回调函数中，除了可以使用request对象访问请求头数据外，还能把request对象当作一个只读数据流来访问请求体数据。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/30" rel="alternate"/><category term="Notes"/><category term="Node"/><published>2023-03-02T09:39:28+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/29</id><title>TypeScript小技巧记录</title><updated>2023-03-02T09:41:44.912419+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/30" rel="alternate"/><category term="Notes"/><category term="Node"/><published>2023-03-02T09:39:28+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/29</id><title>TypeScript小技巧记录</title><updated>2023-03-02T09:44:03.730029+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>用了TypeScript挺久了，工具链这边显著的特点就是不少模块由于业务原因亦或者是出于其他的一些考虑，后端所传输过来的数据很复杂，因此处理起来需要小心翼翼的，稍有不慎就会出现TypeError，因此之前在团队内部有做过一个小的分享，即如何使用TS让自己的数据处理更安全。这里将之前的PPT内容写成文章，此外也去除一些与具体业务有关的东西，方便后续补充以及沉淀～（话说PPT迷之找不到了，只剩下一些截图来和思维导图了）</p>
 <h4>思维导图</h4>
 <p><img src="https://cdn.nlark.com/yuque/0/2020/svg/296173/1589540812033-d9479ca5-0ca1-4a40-a22f-dd9934a0f7dc.svg" alt="" /></p>
@@ -1076,7 +1297,7 @@ const getData = (data: IDataSet) =&gt; {
 }
 </code></pre>
 <p>这样当我们不小心将key写错的时候，就会有相应的提示来:<img src="https://cdn.nlark.com/yuque/0/2020/png/296173/1589532010316-cd8cf056-4ba1-41ba-841f-ee50bc0c7b4b.png#align=left&amp;display=inline&amp;height=119&amp;name=image.png&amp;originHeight=358&amp;originWidth=1770&amp;size=76948&amp;status=done&amp;style=none&amp;width=590" alt="image.png" /><br />// 待续</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/29" rel="alternate"/><published>2023-03-02T09:38:42+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/28</id><title>TypeScript 装饰器--踩坑小日记</title><updated>2023-03-02T09:41:45.033746+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/29" rel="alternate"/><published>2023-03-02T09:38:42+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/28</id><title>TypeScript 装饰器--踩坑小日记</title><updated>2023-03-02T09:44:03.819680+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>最近在思考如何实现一个类型错误拦截的功能，意外的发现了基于装饰器实现的这个:</p>
 <blockquote>
 <p><a href="https://www.npmjs.com/package/reflect-metadata">https://www.npmjs.com/package/reflect-metadata</a></p>
@@ -1182,7 +1403,7 @@ const demo3 = new demo2()
 <blockquote>
 <p><a href="https://codesandbox.io/s/affectionate-darwin-5zmuj?file=/src/App.tsx">https://codesandbox.io/s/affectionate-darwin-5zmuj?file=/src/App.tsx</a></p>
 </blockquote>
-]]></content><link href="https://github.com/srtian/Blog/issues/28" rel="alternate"/><category term="TS"/><published>2023-03-02T09:38:21+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/27</id><title>Node 多进程和 cluster 原理</title><updated>2023-03-02T09:41:45.179647+00:00</updated><content type="html"><![CDATA[<h1>一、概述</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/28" rel="alternate"/><category term="TS"/><published>2023-03-02T09:38:21+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/27</id><title>Node 多进程和 cluster 原理</title><updated>2023-03-02T09:44:04.097354+00:00</updated><content type="html"><![CDATA[<h1>一、概述</h1>
 <p>由于node.js 主线程是单线程的，因此当我们的 node 程序运行时，通常只启动了一个进程，只能在一个 CPU 中进行运算，无法运用服务器中的多核 CPU。这显然是对于多核CPU服务器性能的浪费，因此我们需要寻求一些解决方案，来充分利用服务器的多核CPU，从而提升我们程序的运行效率。而对于这种情况，我们通常的做法就是 多进程分发策略：即主进程接收所有的请求，通过一定的负载均衡策略分发到不同的子进程中。而这一方案，其实也有两种不同的实现方式：</p>
 <ol>
 <li>主进程监听一个端口，子进程不监听端口，主进程分发请求到子进程中。这样做的好处在于，通常只需要占用一个端口，通信相对简单，转发策略也更为灵活。缺点则是实现相对会比较复杂，对主进程的稳定性也有更高的要求。</li>
@@ -1241,7 +1462,7 @@ const demo3 = new demo2()
 <li><a href="https://www.cnblogs.com/dashnowords/p/10958457.html">https://www.cnblogs.com/dashnowords/p/10958457.html</a></li>
 <li><a href="https://juejin.cn/post/6844903764093042695">https://juejin.cn/post/6844903764093042695</a></li>
 </ol>
-]]></content><link href="https://github.com/srtian/Blog/issues/27" rel="alternate"/><category term="Top"/><category term="Node"/><published>2023-03-02T09:36:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/26</id><title>《领域驱动设计》</title><updated>2023-03-02T09:41:45.298043+00:00</updated><content type="html"><![CDATA[<p>之前在接手BPM的工作时，被大佬推荐学习一下领域驱动设计，因此花了不少时间阅读了 Eric 的这本经典著作，不少章节翻了很多次，也有不少章节则选择性的放弃了（有一说一，很多模式实在不太理解），自我感觉总结起来主要有两点核心的思想：</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/27" rel="alternate"/><category term="Top"/><category term="Node"/><published>2023-03-02T09:36:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/26</id><title>《领域驱动设计》</title><updated>2023-03-02T09:44:04.228598+00:00</updated><content type="html"><![CDATA[<p>之前在接手BPM的工作时，被大佬推荐学习一下领域驱动设计，因此花了不少时间阅读了 Eric 的这本经典著作，不少章节翻了很多次，也有不少章节则选择性的放弃了（有一说一，很多模式实在不太理解），自我感觉总结起来主要有两点核心的思想：</p>
 <ol>
 <li>创造统一语言：领域专家和开发人员用同一语言讨论问题，术语和概念相统一。</li>
 <li>模型驱动开发：模型和代码相统一，并对数据的更改进行收敛以及限制。</li>
@@ -1313,7 +1534,7 @@ const demo3 = new demo2()
 <li>策略：是对于事件的响应，通常表示不属于某些聚集的逻辑，通过策略可以触发新的命令，而由策略触发的命令，被称为系统触发命令。</li>
 </ul>
 <p>而通过事件建模建立起的模型，我们就可以通过不断的事件风暴以及实践，去对事件进行收敛，从而提升我们的模型。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/26" rel="alternate"/><category term="Notes"/><category term="Basis"/><category term="Top"/><published>2023-03-02T09:34:40+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/25</id><title>《白帽子讲安全》</title><updated>2023-03-02T09:41:45.428752+00:00</updated><content type="html"><![CDATA[<h1>结构：</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/26" rel="alternate"/><category term="Notes"/><category term="Basis"/><category term="Top"/><published>2023-03-02T09:34:40+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/25</id><title>《白帽子讲安全》</title><updated>2023-03-02T09:44:04.388884+00:00</updated><content type="html"><![CDATA[<h1>结构：</h1>
 <p><img src="https://cdn.nlark.com/yuque/0/2022/jpeg/296173/1655191089154-1918e60a-b4f9-465e-8066-4cfc3d047347.jpeg" alt="" /></p>
 <h1>一、安全世界观</h1>
 <p><strong>安全问题的本质的信任的问题</strong>。</p>
@@ -1394,7 +1615,7 @@ Secure By DefauIt原则，最为基本的原则，<ol>
 <li>获取用户的真实IP地址：JavaScript本身并没有提供获取本地IP地址的能力，有没有其他办法？一般来说，XSS攻击需要借助第三方软件来完成。比如，客户端安装了Java环境（JRE），那么XSS就可以通过调用Java Applet的接口获取客户端的本地IP地址。</li>
 <li>XSS Worm</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/25" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:33:51+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/24</id><title>《远见》</title><updated>2023-03-02T09:41:45.546634+00:00</updated><content type="html"><![CDATA[<p>职业生涯是长期的，可以分为三个阶段：</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/25" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:33:51+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/24</id><title>《远见》</title><updated>2023-03-02T09:44:04.493026+00:00</updated><content type="html"><![CDATA[<p>职业生涯是长期的，可以分为三个阶段：</p>
 <ol>
 <li>初期，积攒燃料，补足短板</li>
 <li>中期，发挥长板，合作共赢</li>
@@ -1437,7 +1658,7 @@ Secure By DefauIt原则，最为基本的原则，<ol>
 </li>
 </ol>
 <p>我们总是会低估在未来才能兑现的好处，这种现象被称为‘时间贴现’（temporal discounting）。我们都不愿意用当前的痛苦，比如更辛苦的工作、更低的薪水、更低的声望等，来换取未来的某样东西，即使未来的好处其实更加丰厚。作为人类，我们本能地不相信未来的好处能够兑现，所以会在当前对它们打很大的折扣。”克里斯还在观察中发现了“损失厌恶”（loss aversion）的效应：“人们对后果和风险看得比好的方面更加清楚。我们的美梦很模糊，但噩梦却很清晰。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/24" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:33:03+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/23</id><title>重学前端之语义化</title><updated>2023-03-02T09:41:45.651649+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/24" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:33:03+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/23</id><title>重学前端之语义化</title><updated>2023-03-02T09:44:04.613533+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>本来很早前我就自认为对前端语义化有了一些了解，但在看完winter大大的专栏后才发现，自己对语义化的理解并不是很透彻，只存在于表面的理解而已，因此决定在学习winter老师的专栏后结合自己的一些理解，好好对其进行进行一个总结。</p>
 <h3>一、语义化是什么</h3>
 <p>从维基百科所得到的结果：</p>
@@ -1538,7 +1759,7 @@ Secure By DefauIt原则，最为基本的原则，<ol>
 <li><a href="https://www.zhihu.com/question/20455165">https://www.zhihu.com/question/20455165</a></li>
 <li><a href="https://time.geekbang.org/column/intro/154">https://time.geekbang.org/column/intro/154</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/23" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:32:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/22</id><title>重学前端之JavaScript语法</title><updated>2023-03-02T09:41:45.771006+00:00</updated><content type="html"><![CDATA[<h1>一、脚本与模块</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/23" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:32:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/22</id><title>重学前端之JavaScript语法</title><updated>2023-03-02T09:44:04.728569+00:00</updated><content type="html"><![CDATA[<h1>一、脚本与模块</h1>
 <p>JavaScript中又两种源文件，这个区分从ES6开始：</p>
 <ul>
 <li>脚本</li>
@@ -1569,7 +1790,7 @@ import d, * as x from &quot;./a.js&quot;
 </code></pre>
 <p>需要注意的是使用没使用 as 的默认值永远在最前，且这里的as只是换一个名字而已，当变量被改变的时候，as所产生的值也会随着改变。</p>
 <h3>export</h3>
-]]></content><link href="https://github.com/srtian/Blog/issues/22" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:31:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/21</id><title>重学前端之JavaScript类型</title><updated>2023-03-02T09:41:45.924247+00:00</updated><content type="html"><![CDATA[<p>按照JavaScript最新标准，一共定义了7种数据类型：</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/22" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:31:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/21</id><title>重学前端之JavaScript类型</title><updated>2023-03-02T09:44:04.834380+00:00</updated><content type="html"><![CDATA[<p>按照JavaScript最新标准，一共定义了7种数据类型：</p>
 <ol>
 <li>Undefined；</li>
 <li>Null；</li>
@@ -1616,7 +1837,7 @@ import d, * as x from &quot;./a.js&quot;
 <li>Symbol。</li>
 </ul>
 <p>需要注意的是， 3 与 new Number(3)是完全不一样的，一个是Number类型一个是对象类型。而Number、String 和 Boolean这三个构造器也是两用的，当和new搭配时，会产生对象，当直接调用时，会进行强制类型转换。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/21" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:31:15+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/20</id><title>重学前端之JavaScript执行</title><updated>2023-03-02T09:41:46.178703+00:00</updated><content type="html"><![CDATA[<p>一个JavaScript引擎会常驻内存中，它等待着我们把JavaScript代码或者函数传递给它。</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/21" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:31:15+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/20</id><title>重学前端之JavaScript执行</title><updated>2023-03-02T09:44:04.964362+00:00</updated><content type="html"><![CDATA[<p>一个JavaScript引擎会常驻内存中，它等待着我们把JavaScript代码或者函数传递给它。</p>
 <p>按照JSC引擎术语，我们把宿主发起的任务称为宏观任务，将JavaScript引擎发起的任务称为微观任务。</p>
 <h2>一、宏观任务和微观任务</h2>
 <p>JavaScript 引擎等待宿主环境分配宏观任务，在操作系统中，通常等待的行为都是一个事件循环，因此在 Node 术语中，也会把这个部分称为事件循环。</p>
@@ -1714,7 +1935,7 @@ async function foo*(){
 <p>任何 JavaScript 语句是可以加标签的，在语句前加冒号即可</p>
 <pre><code class="language-javascript"> firstStatement: var i = 1;
 </code></pre>
-]]></content><link href="https://github.com/srtian/Blog/issues/20" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:30:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/19</id><title>重学前端之JavaScript对象</title><updated>2023-03-02T09:41:46.341622+00:00</updated><content type="html"><![CDATA[<h2>一、基于对象的JavaScript</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/20" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:30:37+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/19</id><title>重学前端之JavaScript对象</title><updated>2023-03-02T09:44:05.068700+00:00</updated><content type="html"><![CDATA[<h2>一、基于对象的JavaScript</h2>
 <p>JavaScript是一门基于对象的编程语言，其标准对基于对象的定义如下：</p>
 <blockquote>
 <p>语言和宿主的基础设施由对象来提供，并且 JavaScript 程序即是一系列互相通讯的对象集合”</p>
@@ -1977,7 +2198,7 @@ o.getValue(); //100
 <li>类型数组和数组缓冲区：跟内存块相关联，下标运算比较特殊。</li>
 <li>bind 后的 function：跟原来的函数相关联。</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/19" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:30:02+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/18</id><title>《写给大家看的色彩书：设计配色基础》</title><updated>2023-03-02T09:41:46.487792+00:00</updated><content type="html"><![CDATA[<p>《写给大家看的色彩书：设计配色基础》国内著名由设计师梁景红编写，主要谈及配色的基础技巧和必备理念。非常适合初学配色的专业人士来学习。仔细阅读此书后，我对配色有了非常全面的认识，也巩固了之前零散的色彩知识。很希望和大家交流分享。<br />这是一本非常不错的配色入门书，从色彩最基础的知识点讲起，逐渐深入到专业的理论，层层递进。配合相应的案例，虽然大部分在讲理论，却也一点都不枯燥。</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/19" rel="alternate"/><category term="Notes"/><published>2023-03-02T09:30:02+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/18</id><title>《写给大家看的色彩书：设计配色基础》</title><updated>2023-03-02T09:44:05.192551+00:00</updated><content type="html"><![CDATA[<p>《写给大家看的色彩书：设计配色基础》国内著名由设计师梁景红编写，主要谈及配色的基础技巧和必备理念。非常适合初学配色的专业人士来学习。仔细阅读此书后，我对配色有了非常全面的认识，也巩固了之前零散的色彩知识。很希望和大家交流分享。<br />这是一本非常不错的配色入门书，从色彩最基础的知识点讲起，逐渐深入到专业的理论，层层递进。配合相应的案例，虽然大部分在讲理论，却也一点都不枯燥。</p>
 <p>之前都认为，配色只是一种感觉，只要根据常识和已有的审美走就可以了。其实不然，学习了解专业的理论知识，不仅能让你在配色过程中更加有自信，而且可以举一反三，从现有的经验推导至未知的领域，如果在工作上遇到以前没有接触过的内容，也可以轻松入手。</p>
 <p>本书的主要内容包括：<br />1.颜色的基础只是，配色基础原则：不超过三种颜色<br />2.主色、辅色、点缀色的使用<br />3.色彩集合：图像、文字、图案、图表都可以看成一种颜色<br />4.在不确定的时候，使用黑、白、灰调色<br />5.基础色调：相近色调或对比色调<br />6.根据色彩情感的关键词，选择主色<br />7.根据关键词选择色调，避开主色谈配色<br />8.色彩素材的实践运用：提取色彩——分析色彩——实践运用<br />9.突破对立色彩感受：从一端到另一端</p>
 <p><strong>chapter1</strong><br /><strong>色彩基础，让你拥有一个清晰的色彩概念</strong>：使用H（色相）S（饱和度）B（明度）的色相环调色</p>
@@ -2045,7 +2266,7 @@ o.getValue(); //100
 <p>**</p>
 <p><strong>chapter9突破对立色彩的感受：从一端到另一端的选择</strong><br /><strong>搭配出一种情感效果，很可能就无法得到另一种情感效果，在这种情况下就要合适的取舍，明确具体的配色目的。</strong><br /><strong>同样是浊色➕明色，不同的颜色搭配，可以得出不同情感的颜色搭配效果。可以是活泼的，可以是平静的，也可以平时，华丽的。</strong><br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910153027-db451be0-0970-40ea-8f59-3245d0972894.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=u1eb6f1ef&amp;name=image.png&amp;originHeight=466&amp;originWidth=770&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=307472&amp;status=done&amp;style=none&amp;taskId=u35601eab-b6d3-4d7d-92fd-bf99d489b42&amp;title=" alt="image.png" /></p>
 <p>最后：<br />色彩有冷暖之分，有性别之分，也有不同的感情基调。所以把色彩也当成有灵魂的“人”，在搭配的过程中，时时刻刻考虑到不同的色彩搭配在一起要“和谐相处”，才能构建出和谐的画面。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/18" rel="alternate"/><category term="Web"/><category term="产品"/><published>2023-03-02T09:28:33+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/17</id><title>关于B端产品的一些思考以及体会</title><updated>2023-03-02T09:41:46.644862+00:00</updated><content type="html"><![CDATA[<p>这半年来，由于某些原因，我在开发之余，也承担了平台前端产品需求的挖掘，设计和梳理的工作，也做成了诸如公开数据集模块，模型自动化等需求的前端交互设计或者是总体的业务流程设计，有些还挺不错，受到了一些好评。做着做着就由感而发，也对B端的产品设计有了一些自己的思考，因此总结一下这半年来，在这方面的体会以及心路历程。</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/18" rel="alternate"/><category term="Web"/><category term="产品"/><published>2023-03-02T09:28:33+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/17</id><title>关于B端产品的一些思考以及体会</title><updated>2023-03-02T09:44:05.342834+00:00</updated><content type="html"><![CDATA[<p>这半年来，由于某些原因，我在开发之余，也承担了平台前端产品需求的挖掘，设计和梳理的工作，也做成了诸如公开数据集模块，模型自动化等需求的前端交互设计或者是总体的业务流程设计，有些还挺不错，受到了一些好评。做着做着就由感而发，也对B端的产品设计有了一些自己的思考，因此总结一下这半年来，在这方面的体会以及心路历程。</p>
 <h2>一、AI 产品的不确定性</h2>
 <p>相较于传统的B端产品，AI平台最大的特点就是不确定，这个不确定表现在很多方面。譬如：</p>
 <ul>
@@ -2099,7 +2320,7 @@ o.getValue(); //100
 <li>文字 or 邮件关怀</li>
 <li>图形</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/17" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:47+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/16</id><title>关于 BPM 的一些记录与思考</title><updated>2023-03-02T09:41:46.755979+00:00</updated><content type="html"><![CDATA[<h1>BPMN2 及相关概念</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/17" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:47+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/16</id><title>关于 BPM 的一些记录与思考</title><updated>2023-03-02T09:44:05.565906+00:00</updated><content type="html"><![CDATA[<h1>BPMN2 及相关概念</h1>
 <p>去年刚入职的时候，学习了 AWS 的关于 BPMN2 的一些文档，输出一下自己对于文档的理解：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1622973941077-4798449f-2c53-465d-8e83-17e0dd2e48a7.png#clientId=ud374fb22-d32f-4&amp;from=paste&amp;height=500&amp;id=uec962f42&amp;name=image.png&amp;originHeight=744&amp;originWidth=2356&amp;originalType=binary&amp;ratio=1&amp;size=298008&amp;status=done&amp;style=none&amp;taskId=ue26f5275-bf9c-4914-a7f9-16be68b24f6&amp;width=1583" alt="image.png" /></p>
 <h1>流程</h1>
 <h2>流程是什么？</h2>
@@ -2130,7 +2351,7 @@ o.getValue(); //100
 <li>客户：在新的流程体系里，一切流程都是面向客户的，反思流程是否走完了全过程，实现了客户的价值与要求（需要回答两个问题：1. 对客户要有清晰的认知，客户是谁？客户端的需求是什么？2.用什么去实现客户价值）</li>
 </ol>
 <p>从上述必要构成出发，从领域驱动设计的角度来讲，我们对于一个流程的模型，或许可以如此抽象：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1624416125530-6d61e184-1a47-43e3-98d6-5e2308d0ad92.png#clientId=uc9de569a-6de0-4&amp;from=paste&amp;height=954&amp;id=ufd557560&amp;name=image.png&amp;originHeight=954&amp;originWidth=2090&amp;originalType=binary&amp;ratio=1&amp;size=126280&amp;status=done&amp;style=none&amp;taskId=udd88226e-99f5-48c5-b212-be8e0852401&amp;width=2090" alt="image.png" /></p>
-]]></content><link href="https://github.com/srtian/Blog/issues/16" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:22+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/15</id><title>浅谈 Rust 前端应用开发</title><updated>2023-03-02T09:41:46.853835+00:00</updated><content type="html"><![CDATA[<p>随着技术的不断演进，近年来愈来越多的非前端开发语言诸如：Rust、Go 等也开始进入前端/跨端应用开发领域，并收获了不小的开源社区的关注。因此本次在此尝试对基于 Rust 的一些 前端/跨端 应用开发进行一些分析，来分析一下这种开发模式的技术基础、基本方案等情况，由于篇幅原因将分为两部分：第一部分，主要讨论 Rust 前端应用开发的基本现状、原理以及收益等，而第二部分则会讨论号称 Electron 终结者的 Tauri 的基本情况、最大卖点、基本架构组成等。
+]]></content><link href="https://github.com/srtian/Blog/issues/16" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:22+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/15</id><title>浅谈 Rust 前端应用开发</title><updated>2023-03-02T09:44:05.677620+00:00</updated><content type="html"><![CDATA[<p>随着技术的不断演进，近年来愈来越多的非前端开发语言诸如：Rust、Go 等也开始进入前端/跨端应用开发领域，并收获了不小的开源社区的关注。因此本次在此尝试对基于 Rust 的一些 前端/跨端 应用开发进行一些分析，来分析一下这种开发模式的技术基础、基本方案等情况，由于篇幅原因将分为两部分：第一部分，主要讨论 Rust 前端应用开发的基本现状、原理以及收益等，而第二部分则会讨论号称 Electron 终结者的 Tauri 的基本情况、最大卖点、基本架构组成等。
 <a name="rwzVM"></a></p>
 <h1>一、兴起的基础</h1>
 <p>对于前端应用开发有一定了解的同学应该知道，可以在浏览器端运行的编程语言主要有两种：</p>
@@ -2246,7 +2467,7 @@ pub struct Element {
 <li><a href="https://rustwasm.github.io/docs/book/introduction.html">https://rustwasm.github.io/docs/book/introduction.html</a></li>
 <li><a href="https://webassembly.org/docs/security/">https://webassembly.org/docs/security/</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/15" rel="alternate"/><category term="Top"/><category term="Rust"/><published>2023-03-02T09:25:44+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/14</id><title>浅谈 Rust 所有权机制</title><updated>2023-03-02T09:41:46.994442+00:00</updated><content type="html"><![CDATA[<h1>一、什么是 stack 和 heap</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/15" rel="alternate"/><category term="Top"/><category term="Rust"/><published>2023-03-02T09:25:44+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/14</id><title>浅谈 Rust 所有权机制</title><updated>2023-03-02T09:44:05.790135+00:00</updated><content type="html"><![CDATA[<h1>一、什么是 stack 和 heap</h1>
 <p>stack 和 heap 都用于变量的内存存储。对于大多数的编程人员来讲，都无需去关心内存是如何分配到 heap 和 stack 中的（实际上，对于 stack   和 heap 的区别，也很多人并不是很清楚）。譬如在JavaScript中，大多数人知道一个结论：基本数据类型放在 stack 中，而引用数据类型放在 heap 里面。但一旦问到，为何需要这样进行划分的时候，少有人可以说上一二。</p>
 <p>那它们到底有什么区别呢？ 首先它们虽然都是可供代码使用的内存，但结构是不同的。 stack是一个线性的数据结构，以放入值得顺序存储值并以相反的顺序取出值，也就是我们常说的：后进先出。其数据的输入和取出，则通常被称为 进栈、出栈。由于 <code>stack</code>是线性的数据结构，所以 stack 中的所有数据都是必须占用<strong>已知且固定</strong>的大小。</p>
 <p>而 heap 则是一个非线性的数据结构，是缺乏组织的。因此对于一些在初始时，大小未知或大小可能发生变化的数据，则可以放在堆中。当我们想要在堆中存储一些数据时，我们通常其实是请求一块大小合适的空间，然后操作系统在堆中搜索一个足够大的空间以匹配我们所请求的内存量，并将其标记为已用，并返回一个表示该位置地址的 **指针， **而这个指针也通常被存在 stack 中。这个过程也就是 <strong>堆内存分配</strong>，也常被称为 <strong>内存分配。</strong></p>
@@ -2408,7 +2629,7 @@ fn main() {
 }
 </code></pre>
 <p>如此我们就能将借用的变量进行返回来。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/14" rel="alternate"/><category term="Rust"/><published>2023-03-02T08:09:43+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/13</id><title>产品可用性之容错处理设计及实践</title><updated>2023-03-02T09:41:47.160544+00:00</updated><content type="html"><![CDATA[<h2>一、为什么说容错处理很重要</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/14" rel="alternate"/><category term="Rust"/><published>2023-03-02T08:09:43+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/13</id><title>产品可用性之容错处理设计及实践</title><updated>2023-03-02T09:44:05.903449+00:00</updated><content type="html"><![CDATA[<h2>一、为什么说容错处理很重要</h2>
 <p>B端产品由于其自身就具有一定的业务复杂度以及上手成本，因此在可用性方面，做好容错处理至关重要。一个好的容错处理既可以有效的提升用户使用产品的顺畅程度以及使用效率，也可以避免一些产品设计不够完善的问题的暴露。<br />
 <br />下图是我在学习尼尔森十大可用性原则时所做的学习思维导图：<br /></p>
 <p><img src="https://cdn.nlark.com/yuque/0/2020/svg/296173/1591757022787-9e968925-89d4-4a08-ad73-1f24b61a8298.svg" alt="" />从上述的思维导图我们不难发现，尼尔森所强调的可用性原则里面，绝大部分其实都和容错处理息息相关。我个人理解，容错处理我们可以在一下几个方面进行设计：</p>
@@ -2461,7 +2682,7 @@ fn main() {
 <br />类似的例子还有很多，比如PS，LR等操作软件，也提供了历史记录的功能，可以轻松回退的相应的地方<br /></p>
 <h2>结语</h2>
 <p>上述只是我个人在实践过程中的一些体会以及方法论，因为大家的产品特征不同，所要解决的问题，目标用户群体也不同。因此在具体的设计时，要根据自身的特点，去因地制宜的设计合理的容错处理机制。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/13" rel="alternate"/><category term="Web"/><category term="产品"/><category term="Top"/><published>2020-06-10T07:07:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/12</id><title>简述JavaScript模块化编程</title><updated>2023-03-02T09:41:47.275561+00:00</updated><content type="html"><![CDATA[<h1>简述JavaScript模块化编程</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/13" rel="alternate"/><category term="Web"/><category term="产品"/><category term="Top"/><published>2020-06-10T07:07:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/12</id><title>简述JavaScript模块化编程</title><updated>2023-03-02T09:44:06.079872+00:00</updated><content type="html"><![CDATA[<h1>简述JavaScript模块化编程</h1>
 <p>在早期编写JavaScript时，我们只需在 script 标签内写入JavaScript的代码就可以满足我们对页面交互的需要了。但随着时间的推移，时代的发展，原本的那种简单粗暴的编写方式所带来的诸如逻辑混乱，页面复杂，可维护性差，全局变量暴露等问题接踵而至，前辈们为了解决这些问题提出了很种的解决方案，其中之一就是JavaScript模块化编程。总的来说，它有以下四种优点：<br /></p>
 <ol>
 <li>解决项目中的全局变量污染的问题。</li>
@@ -2816,7 +3037,7 @@ export { add as add1 } from ./example.js; //以add这个名称导入，再以add
 export *  from ./example.js;
 </code></pre>
 <p><br />// 最后求一波暑期前端实习的坑位-_-||</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/12" rel="alternate"/><category term="JavaScript"/><published>2020-04-07T07:51:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/11</id><title>聊一聊常见的浏览器端数据存储方案</title><updated>2023-03-02T09:41:47.400792+00:00</updated><content type="html"><![CDATA[<h3>前言：</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/12" rel="alternate"/><category term="JavaScript"/><published>2020-04-07T07:51:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/11</id><title>聊一聊常见的浏览器端数据存储方案</title><updated>2023-03-02T09:44:06.224313+00:00</updated><content type="html"><![CDATA[<h3>前言：</h3>
 <p>五一假期在撸代码的时候用到cookie，感觉对浏览器的数据存储方案不是很了解，因此又去翻了两本大头书中间的关于浏览器端数据存储的章节，同时去MDN逛了逛，又看了几篇文章，算是对浏览器的数据存储方案有了一个了解，在此总结一下！</p>
 <h2>浏览器存储</h2>
 <p>在浏览器端存储数据对我们是很有用，这相当于赋予浏览器记忆的功能，可以纪录用户的所有状态信息，增强用户体验。比如当纪录用户的登陆状态时，可以让用户能够更快的进行访问，而不是每次登陆时都需要去进行繁琐的操作。</p>
@@ -3058,7 +3279,7 @@ request.onupgradeneededd = function(e) {
 <h4>3. indexedDB受同源策略的限制</h4>
 <p>indexedDB使用同源原则，这意味着它把存储空间绑定到了创建它的站点的源（典型情况下，就是站点的域或是子域），所以它不能被任何其他源访问。要着重指出的一点是 IndexedDB 不适用于从另一个站点加载进框架的内容 (不管是 <frame> 还是 &lt;iframe>。这是一项安全措施。详情请看这个：<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=595307">https://bugzilla.mozilla.org/show_bug.cgi?id=595307</a></p>
 <p>除此之外，IndexedDB还存在诸如：不适合存储敏感数据，相较于web存储机制的操作更加复杂等问题，这都是我们在使用IndexedDB时需要考虑的。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/11" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T10:04:17+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/10</id><title>React高阶组件的那些事，了解一下？</title><updated>2023-03-02T09:41:47.533419+00:00</updated><content type="html"><![CDATA[<h4>前言</h4>
+]]></content><link href="https://github.com/srtian/Blog/issues/11" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T10:04:17+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/10</id><title>React高阶组件的那些事，了解一下？</title><updated>2023-03-02T09:44:06.386535+00:00</updated><content type="html"><![CDATA[<h4>前言</h4>
 <p>学习react已经有一段时间了，期间在阅读官方文档的基础上也看了不少文章，但感觉对很多东西的理解还是不够深刻，因此这段时间又在撸一个基于react全家桶的聊天App（现在还在瞎78写的阶段，在往这个聊天App这个方向写），通过实践倒是对react相关技术栈有了更为深刻的理解，而在使用react-redux的过程中，发现connect好像还挺有意思的，也真实感受到了高阶组件所带来的便利，出于自己写项目本身就是为了学习的目的，因此对高阶组件又进行了一番学习。写下这篇文章主要是对高阶组件的知识进行一个梳理与总结，如有错误疏漏之处，敬请指出，不胜感激。</p>
 <h2>初识高阶组件</h2>
 <p><em>要学习高阶组件首先我们要知道的就是高阶组件是什么，解决了什么样的问题。</em></p>
@@ -3281,7 +3502,7 @@ class HOC extends ... {
 <p>实际上我们不用自己来写getDisplayName这个函数，recompose 提供了这个函数，我们只要使用即可。</p>
 <h4>结尾语</h4>
 <p>我们其他要注意的就是<a href="https://react.bootcss.com/react/docs/higher-order-components.html">官方文档</a>所说的几个约定与相关规范，在此我就不一一赘述了，感兴趣的可以自己去看看。最后很感谢能看到这里的朋友，因为水平有限，如果有错误敬请指正，十分感激！</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/10" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T10:00:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/9</id><title> 从 HTML5 WebSocket 到 Socket.io</title><updated>2023-03-02T09:41:47.658042+00:00</updated><content type="html"><![CDATA[<h2>HTML5 WebSocket概述</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/10" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T10:00:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/9</id><title> 从 HTML5 WebSocket 到 Socket.io</title><updated>2023-03-02T09:44:06.507454+00:00</updated><content type="html"><![CDATA[<h2>HTML5 WebSocket概述</h2>
 <p>作为新一代的web标准，HTML5为我们提供了很多有用的东西，比如canvas，本地存储（已经分离出去了），多媒体编程接口，当然还有我们的WebSocket。WebSocket是HTML5开始提供的一种浏览器与服务器间进行全双工通讯（full-duplex）的网络技术，可以传输基于信息的文本和二进制的数据。它于2011年被IETF定为标准 RFC 6455，同时WebSocket API也被W3C定为标准。</p>
 <h2>一、WebSocket产生的背景</h2>
 <h3>1.黎明前的黑暗——实时web应用的需求</h3>
@@ -3447,7 +3668,7 @@ client.on(&#x27;disconnect&#x27;,function(){
 <pre><code class="language-JavaScript">import io from &#x27;socket.io-client&#x27;
 const socket = io(&#x27;ws://localhost:8080&#x27;)
 </code></pre>
-]]></content><link href="https://github.com/srtian/Blog/issues/9" rel="alternate"/><category term="FE"/><category term="Web"/><category term="JavaScript"/><published>2019-09-28T09:59:23+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/8</id><title>Redux 源码解读</title><updated>2023-03-02T09:41:47.765972+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/9" rel="alternate"/><category term="FE"/><category term="Web"/><category term="JavaScript"/><published>2019-09-28T09:59:23+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/8</id><title>Redux 源码解读</title><updated>2023-03-02T09:44:06.616997+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>作为React全家桶的一份子，Redux为react提供了严谨周密的状态管理。但Redux本身是有点难度的，虽然学习了React也有一段时间了，自我感觉算是入了门，也知道redux的大概流程。但其背后诸如creatstore,applymiddleware等API背后到底发生了什么事情，我其实还是不怎么了解的，因此最近花了几天时间阅读了Redux的源码，写下文章纪录一下自己看源码的一些理解。（redux4.0版本）</p>
 <h3>一、源码结构</h3>
 <p>Redux是出了名的短小精悍（恩，这个形容很贴切），只有2kb大小，且没有任何依赖。它将所有的脏活累活都交给了中间件去处理，自己保持着很好的纯洁性。再加上redux作者在redux的源码上，也附加了大量的注释，因此redux的源码读起来还是不算难的。</p>
@@ -3788,7 +4009,7 @@ export default function bindActionCreators(actionCreators, dispatch) {
 </code></pre>
 <h3>小节</h3>
 <p>看一遍redux，感觉设计十分巧秒，不愧是大佬的作品。这次看代码只是初看，往后随着自己学习的不断深入，还需多加研究，绝对还能得到更多的体会。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/8" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:58:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/7</id><title>深入理解 Redux 中间件——走马观花</title><updated>2023-03-02T09:41:47.925882+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/8" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:58:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/7</id><title>深入理解 Redux 中间件——走马观花</title><updated>2023-03-02T09:44:06.746224+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>最近几天对 redux 的中间件进行了一番梳理，又看了 redux-saga 的文档，和 redux-thunk 和 redux-promise 的源码，结合前段时间看的redux的源码的一些思考，感觉对 redux 中间件的有了更加深刻的认识，因此总结一下。</p>
 <h3>一、Redux中间件机制</h3>
 <p>Redux本身就提供了非常强大的数据流管理功能，但这并不是它唯一的强大之处，它还提供了利用中间件来扩展自身功能，以满足用户的开发需求。首先我们来看中间件的定义：</p>
@@ -3965,7 +4186,7 @@ function loadInitData(ip) {
 <li>《深入浅出React和Redux》</li>
 <li>《深入React技术栈》</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/7" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:56:41+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/6</id><title>初探 HTML5 Web Workers</title><updated>2023-03-02T09:41:48.048427+00:00</updated><content type="html"><![CDATA[<h3>一、Web Workers是什么</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/7" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:56:41+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/6</id><title>初探 HTML5 Web Workers</title><updated>2023-03-02T09:44:06.857141+00:00</updated><content type="html"><![CDATA[<h3>一、Web Workers是什么</h3>
 <blockquote>
 <p>Web Worker为Web内容在后台线程中运行脚本提供了一种简单的方法。线程可以执行任务而不干扰用户界面。此外，他们可以使用XMLHttpRequest执行 I/O (尽管responseXML和通道属性总是为空)。一旦创建， 一个worker 可以将消息发送到创建它的JavaScript代码, 通过将消息发布到该代码指定的事件处理程序 (反之亦然)。 —— MDN</p>
 </blockquote>
@@ -4093,7 +4314,7 @@ worker.postMessage({
 <li><a href="https://qiutc.me/post/the-multithread-in-javascript-web-worker.html">https://qiutc.me/post/the-multithread-in-javascript-web-worker.html</a></li>
 <li><a href="https://juejin.im/post/5a90233bf265da4e92683de3">https://juejin.im/post/5a90233bf265da4e92683de3</a></li>
 </ol>
-]]></content><link href="https://github.com/srtian/Blog/issues/6" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:54:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/5</id><title>浅谈HTTP缓存</title><updated>2023-03-02T09:41:48.252953+00:00</updated><content type="html"><![CDATA[<h3>一、HTTP缓存概述（HTTP Cache）</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/6" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:54:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/5</id><title>浅谈HTTP缓存</title><updated>2023-03-02T09:44:07.251180+00:00</updated><content type="html"><![CDATA[<h3>一、HTTP缓存概述（HTTP Cache）</h3>
 <p>要搞清楚HTTP缓存，首先当然是要搞清楚缓存是啥，按照MDN的描述，缓存是这样的：</p>
 <blockquote>
 <p>缓存是一种保存资源副本并在下次请求时直接使用该副本的技术。当 web 缓存发现请求的资源已经被存储，它会拦截请求，返回该资源的拷贝，而不会去源服务器重新下载。这样带来的好处有：缓解服务器端压力，提升性能(获取资源的耗时更短了)。对于网站来说，缓存是达到高性能的重要组成部分。缓存需要合理配置，因为并不是所有资源都是永久不变的：重要的是对一个资源的缓存应截止到其下一次发生改变（即不能缓存过期的资源）。</p>
@@ -4161,7 +4382,7 @@ cache-control: max-age=691200
 <li><a href="https://www.cnblogs.com/lyzg/p/5125934.html#_label3">https://www.cnblogs.com/lyzg/p/5125934.html#_label3</a></li>
 <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching_FAQ">https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching_FAQ</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/5" rel="alternate"/><category term="FE"/><category term="Web"/><category term="Basis"/><published>2019-09-28T09:52:53+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/4</id><title>五分钟，简单聊一聊React Component的发展历程</title><updated>2023-03-02T09:41:48.513227+00:00</updated><content type="html"><![CDATA[<h3>一、 前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/5" rel="alternate"/><category term="FE"/><category term="Web"/><category term="Basis"/><published>2019-09-28T09:52:53+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/4</id><title>五分钟，简单聊一聊React Component的发展历程</title><updated>2023-03-02T09:44:07.354360+00:00</updated><content type="html"><![CDATA[<h3>一、 前言</h3>
 <p>随着 react 最新的一个大版本中，给我们带来了 Hooks：<a href="https://reactjs.org/blog/2019/02/06/react-v16.8.0.html">React v16.8: The One With Hooks</a>，从而将 Function component 的能力提高了一大截，成功的拥有了可以与 Class component 抗衡的能力。但话说回来，虽然 Hooks 看起来很美好，最近也有不少文章都讲解了Hooks这一“黑魔法”，但技术的不断演进，本身就是一个解决以往所存在问题的过程，因此我个人认为着眼于现在，回望过去，去看一看 react component 的发展之路，去看看 Class component 以及 Function component 为什么会出现以及它们出现的意义，所要解决的问题，也对于我们全面了解 react 是很有帮助的。</p>
 <p>从 react component 的发展历程上来看，它主要是经历了一下三个阶段：</p>
 <ol>
@@ -4334,7 +4555,7 @@ export default MyComponent
 <li><a href="http://taobaofed.org/blog/2018/11/27/hooks-and-function-component/">http://taobaofed.org/blog/2018/11/27/hooks-and-function-component/</a></li>
 <li><a href="https://www.freecodecamp.org/news/this-is-why-we-need-to-bind-event-handlers-in-class-components-in-react-f7ea1a6f93eb/">https://www.freecodecamp.org/news/this-is-why-we-need-to-bind-event-handlers-in-class-components-in-react-f7ea1a6f93eb/</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/4" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:52:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/3</id><title>浅析 Rematch 源码</title><updated>2023-03-02T09:41:48.638029+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/4" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:52:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/3</id><title>浅析 Rematch 源码</title><updated>2023-03-02T09:44:07.479875+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>入职后公司用的技术栈还是 react，但状态管理由我原本熟悉的 redux 进化成了在 redux 基础上封装而成的 rematch。用起来也着实方便不少，减少了很多样板代码的编写，同时也不用引入中间件来管理异步请求了，但在用起来的过程中难免就会引起了我对 rematch 的一些小疑问：</p>
 <ul>
 <li>它是怎么封装 诸如action creator这些以往在 redux 中繁琐的“样本”代码的？</li>
@@ -4737,7 +4958,7 @@ export default function({
 <li><a href="https://juejin.im/post/5b13fe155188257d6c046728">Redux 源码解读</a></li>
 <li><a href="https://juejin.im/post/5b237569f265da59bf79f3e9">深入理解 Redux 中间件</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/3" rel="alternate"/><category term="FE"/><category term="JavaScript"/><category term="React"/><published>2019-09-28T09:41:20+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/2</id><title>《Don't Make Me Think》读书笔记</title><updated>2023-03-02T09:41:48.760696+00:00</updated><content type="html"><![CDATA[<h3>一、别让我思考</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/3" rel="alternate"/><category term="FE"/><category term="JavaScript"/><category term="React"/><published>2019-09-28T09:41:20+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/2</id><title>《Don't Make Me Think》读书笔记</title><updated>2023-03-02T09:44:07.579980+00:00</updated><content type="html"><![CDATA[<h3>一、别让我思考</h3>
 <p>网页的易用性最重要的一点就是无需用户去思考。这也代表着交互一般劲量趋向于简单化，平整化，以减少用户的认知负担，减少对用户的干扰。</p>
 <p>示例：亚马逊搜索没有提及一定要去搜索什么内容，只会对你所输入的进行分析，这样就会减少用户的思考的成本（淘宝也是如此，通过自然语言处理来对用户的输入进行分析）</p>
 <p>比较典型的地方：</p>
@@ -4895,7 +5116,7 @@ export default function({
 <li>容易从错误中恢复</li>
 <li>如有不确定，记得道歉</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/2" rel="alternate"/><category term="Notes"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:34:00+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/1</id><title>浅析浏览器进程发展历程</title><updated>2023-03-02T09:41:48.882873+00:00</updated><content type="html"><![CDATA[<h3>一、浏览器的多进程概括</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/2" rel="alternate"/><category term="Notes"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:34:00+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/1</id><title>浅析浏览器进程发展历程</title><updated>2023-03-02T09:44:07.817703+00:00</updated><content type="html"><![CDATA[<h3>一、浏览器的多进程概括</h3>
 <p>要想搞明白什么是浏览器的多进程，首先得知道什么是进程。按照维基百科的说法：</p>
 <blockquote>
 <p>进程是计算机中已运行程序的实体。进程是线程的容器，进程本身不运行。程序本身只是指令的集合，进程才是程序（指令）的真正运行。每个程序可以有多个进程，每个进程都有自己的资源。</p>
