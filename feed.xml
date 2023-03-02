@@ -1,5 +1,73 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<feed xmlns="http://www.w3.org/2005/Atom"><id>https://github.com/srtian/Blog</id><title>RSS feed of srtian's Blog</title><updated>2023-03-02T09:28:11.039633+00:00</updated><author><name>srtian</name><email>shenruotian@gmail.com</email></author><link href="https://github.com/srtian/Blog"/><link href="https://raw.githubusercontent.com/srtian/Blog/master/feed.xml" rel="self"/><generator uri="https://lkiesow.github.io/python-feedgen" version="0.9.0">python-feedgen</generator><entry><id>https://github.com/srtian/Blog/issues/17</id><title>关于B端产品的一些思考以及体会</title><updated>2023-03-02T09:28:11.423608+00:00</updated><content type="html"><![CDATA[<p>这半年来，由于某些原因，我在开发之余，也承担了平台前端产品需求的挖掘，设计和梳理的工作，也做成了诸如公开数据集模块，模型自动化等需求的前端交互设计或者是总体的业务流程设计，有些还挺不错，受到了一些好评。做着做着就由感而发，也对B端的产品设计有了一些自己的思考，因此总结一下这半年来，在这方面的体会以及心路历程。</p>
+<feed xmlns="http://www.w3.org/2005/Atom"><id>https://github.com/srtian/Blog</id><title>RSS feed of srtian's Blog</title><updated>2023-03-02T09:29:03.281645+00:00</updated><author><name>srtian</name><email>shenruotian@gmail.com</email></author><link href="https://github.com/srtian/Blog"/><link href="https://raw.githubusercontent.com/srtian/Blog/master/feed.xml" rel="self"/><generator uri="https://lkiesow.github.io/python-feedgen" version="0.9.0">python-feedgen</generator><entry><id>https://github.com/srtian/Blog/issues/18</id><title>《写给大家看的色彩书：设计配色基础》</title><updated>2023-03-02T09:29:03.566754+00:00</updated><content type="html"><![CDATA[<p>《写给大家看的色彩书：设计配色基础》国内著名由设计师梁景红编写，主要谈及配色的基础技巧和必备理念。非常适合初学配色的专业人士来学习。仔细阅读此书后，我对配色有了非常全面的认识，也巩固了之前零散的色彩知识。很希望和大家交流分享。<br />这是一本非常不错的配色入门书，从色彩最基础的知识点讲起，逐渐深入到专业的理论，层层递进。配合相应的案例，虽然大部分在讲理论，却也一点都不枯燥。</p>
+<p>之前都认为，配色只是一种感觉，只要根据常识和已有的审美走就可以了。其实不然，学习了解专业的理论知识，不仅能让你在配色过程中更加有自信，而且可以举一反三，从现有的经验推导至未知的领域，如果在工作上遇到以前没有接触过的内容，也可以轻松入手。</p>
+<p>本书的主要内容包括：<br />1.颜色的基础只是，配色基础原则：不超过三种颜色<br />2.主色、辅色、点缀色的使用<br />3.色彩集合：图像、文字、图案、图表都可以看成一种颜色<br />4.在不确定的时候，使用黑、白、灰调色<br />5.基础色调：相近色调或对比色调<br />6.根据色彩情感的关键词，选择主色<br />7.根据关键词选择色调，避开主色谈配色<br />8.色彩素材的实践运用：提取色彩——分析色彩——实践运用<br />9.突破对立色彩感受：从一端到另一端</p>
+<p><strong>chapter1</strong><br /><strong>色彩基础，让你拥有一个清晰的色彩概念</strong>：使用H（色相）S（饱和度）B（明度）的色相环调色</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910143008-8ee65635-8de9-4886-8555-0df3ba3bb97c.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=u104fbf77&amp;name=image.png&amp;originHeight=850&amp;originWidth=800&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=878157&amp;status=done&amp;style=none&amp;taskId=u71c2dbb3-c6da-496a-8cee-bc70d5490ba&amp;title=" alt="image.png" /><br />根据颜色三原色红黄蓝，可调出六大常用色，红、橙、黄、绿、蓝、紫（如上图）<br /><strong>互补色：相距180°；</strong><br /><strong>对比色：相距120°；（红色与绿色）<strong>把两种颜色的纯度都设置高一些，两种颜色的特征就会都被对方完美的衬托出来。但是，由于对比色的视觉冲击还是比较大的，需要注意的是，两种颜色在面积上需要有区分。这其中紫色搭配黄色是比较容易让人接受的。此外，对比色的搭配需要用无彩色来进行调和，隔离，降低对视觉的刺激。<br /><strong>类似色：相距90°；</strong><br /><strong>类比色：相距60°；</strong><br /><strong>邻近色：相距45°；</strong><br /><strong>同类色：相距30°</strong><br />某种颜色的补色的两侧颜色是这种颜色的</strong>分裂互补色</strong><br />相隔一个颜色的两个颜色为<strong>间隔色：（红色配黄色）</strong><br />紧挨着的颜色为**相邻色（比如6色换中的红色与橙色）：简单而有效，一种颜色纯度较高时，另外一种颜色选择纯度低或明度低的。<strong>颜色之间想过作用的力量发生变化，色彩就有了主次的关系，和谐度增加。此外，选择同一色相不同明度或者饱和度的颜色搭配也能够得到很好的效果。<br /></strong></p>
+<p>**</p>
+<p><strong>从两色搭配中认识色彩（色彩搭配，就是色彩之间的相互衬托和相互作用。所以不会从单色开始学习色彩搭配）</strong><br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910142765-c2994ea2-1353-42ff-a89a-f55dd8eaa0c9.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=ucfc08071&amp;name=image.png&amp;originHeight=740&amp;originWidth=682&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=382628&amp;status=done&amp;style=none&amp;taskId=uc3623408-532e-496b-910d-d06365fb474&amp;title=" alt="image.png" /></p>
+<p>红色使得白色很干净，白色使得红色更加注目。**</p>
+<p>**</p>
+<p>**</p>
+<p>**</p>
+<p>加入了黑色，白色的存在感降低。</p>
+<p>黑色衬托出红色很热情，红色衬托出黑色很庄重，在这里红色与黑色的对比更加明显，使得眼睛在这两种颜色间游离，从而削弱了白色的存在感。<br />（黑白虽然为无彩色，但是在单色系的作品中，无彩色也在发挥非常重要的作用，否则，是无法体现单色的美好出来。）</p>
+<p>从无彩色-有单色-两色-三色的搭配过程<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910142855-67c03bcf-19b3-4e33-bdac-afc69ddcb904.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=ud7e10651&amp;name=image.png&amp;originHeight=1474&amp;originWidth=500&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=626974&amp;status=done&amp;style=none&amp;taskId=u399a750b-4a3b-4b50-9408-0ca38ffa0ad&amp;title=" alt="image.png" /><br />第一幅：无彩色做主色调，且没有有彩色来点缀，给人消极的感受<br />第二幅单色，从观赏者角度看，只有一种颜色，单色搭配，显得比较单调。但是如果，绿色饱和度增加，与白色对比度增加，<br />观感上就会出现绿色与白色搭配的双色效果。<br />第三幅：双色，虽然黄色面积较大，但是首先映入眼帘的是红色，然后配以黄色为主。<br />第四幅：同样是双色搭配，但是首先映入眼帘的却是背景的深色，品红色为辅。<br />第五幅：三色搭配，画面更加丰富，饱满。</p>
+<p><strong>三色搭配的规律，使得你的作品配色更趋向与成熟的方向</strong>：有彩色的色相控制在三种以内。</p>
+<p>1统一外观的相邻色搭配：保持色彩基调相同，搭配起来更加简单。比如在同一个纯度上，<br />或者同一个明度上搭配；<br />2高饱高亮的三色搭配：在色相环上等距取三种颜色，会形成让人愉悦的颜色组合<br />3互补取色组合：即使用分割互补色来搭配</p>
+<p>颜色不复杂，处理起来才会比较容易，所以在优秀的作品中，往往颜色越少越好。可以去掉的颜色都要尽量避免存在。（比如下图的蓝色边框）</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910142739-11f04a69-c8a0-4109-b1d9-05e643775db8.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=u57d87da3&amp;name=image.png&amp;originHeight=232&amp;originWidth=800&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=232229&amp;status=done&amp;style=none&amp;taskId=u1014bd15-f2c2-4a16-a567-c2927b58d8c&amp;title=" alt="image.png" /><br />在标志中，多用两色三色搭配，这样比较容易识别，记忆。而在插画中则可以承载更多复杂的色彩变化。<br />但是，除了纯绘画与摄影等，就色相而言，也很少有超过三种搭配的作品。<br /><strong>chapter2 主色、辅色、点缀色</strong><br /><strong>主色</strong>：色相决定整个作品的风格，确保正确的传达信息，比如蓝色传达冷静、效率；红色传达热情、刺激等<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910144081-c7b7726a-30d8-4acf-aae9-1cfb0ad2df4c.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=u85102793&amp;name=image.png&amp;originHeight=768&amp;originWidth=326&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=335436&amp;status=done&amp;style=none&amp;taskId=uecdf7324-9fd2-418f-9906-9f230cf2832&amp;title=" alt="image.png" /><br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910144263-4f3a8093-e46c-41d5-bfda-0285d41c3479.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=ud357c663&amp;name=image.png&amp;originHeight=770&amp;originWidth=322&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=321390&amp;status=done&amp;style=none&amp;taskId=udad93831-bfa9-474d-861f-96dd85a5944&amp;title=" alt="image.png" /><br />在色调相同的情况下，面积越大越显眼，也就更倾向于主色位置。而当两种颜色面积色调都区分不大时，我们称这两种颜色为<strong>双主色</strong>。<br />但是当色彩面积相同时，饱和度高一些的颜色力量更大，更接近于主色地位。即使面积地位较小，饱和度高的颜色也会呈现一定的力量感。<br />饱和度（纯度）高的颜色作为主色会比较稳定，所以通常设定饱和度高的颜色为主色。<br />此外，在画面中心位置的颜色更能吸引人的注意，更容易成为主色。<br />所以，十分“抢镜”的颜色有可能是主色，但是也有可能是点缀色，区别在于谁第一时间进入你的视野，影响你对整个作品的感官和印象。点缀色通常是面积小的部分，为了方面阅读提醒人们的注意而出现。<br />当不能明确主色是，可以根据色彩的基调判断，通过一个颜色的模糊概念，是柔和的，还是明快的，是冷静的，还是激烈的来区分主色的色彩基调。<br /><strong>辅色：帮助主色建立起更完整的形象，如果主色已经完成很好，辅色不是必要存在的。</strong><br /><strong>所以判断辅色应用好的方法是：去掉它，画面不完整，有了它，主色更显优势。</strong><br />辅色与双主色的区别：辅助色是可以被替代的，也可以是多种颜色；在双主色设计中，任何一个颜色都不可被替代。**</p>
+<p>背景色是特殊的辅色：白色背景通常是阅读的需要而存在，带有颜色的背景往往可以一下子抓住人们的视线，使得画面更加丰富，而背景本身并不见得是主角。<br />辅助色可以辅助一种颜色，也可以辅助作品中的主体（形象，主图像等）存在<br />选择辅色的方法：1选择同类色，达成画面统一和谐；2选择对比色，使得画面刺激、活泼，也同样很稳定。</p>
+<p><strong>点缀色：</strong><br />通常在细节上，多数情况是分散的，面积较小。在杂志中，常常作为牵引阅读，和提醒的作用。</p>
+<p>特点1出现次数较多；2颜色非常跳跃；3引导阅读性4与其他颜色反差较大</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910144665-e38cee79-debd-4f1a-84a8-1d8e88c88f03.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=uf8371bf8&amp;name=image.png&amp;originHeight=926&amp;originWidth=800&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=835203&amp;status=done&amp;style=none&amp;taskId=u60660eb8-6736-4185-8c7a-84172d889b3&amp;title=" alt="image.png" /></p>
+<p>左图中，红色是主色，确定画面颜色基调，<br />紫色是辅助色，辅助红色使得画面完整（由于画面中紫色体现较少，也可以看为点缀色），<br />黄色是点缀色，引导观者阅读从这里开始。<br /><strong>chapter3 色彩集合：图像、图案、文字和图表</strong><br /><strong>图像色彩集合</strong><br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910145754-8da73d0e-abd0-4656-bad2-1314b71dee9f.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=ub07d9408&amp;name=image.png&amp;originHeight=854&amp;originWidth=626&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=940437&amp;status=done&amp;style=none&amp;taskId=u12532ba2-bd40-494c-87f5-04e10cae259&amp;title=" alt="image.png" /></p>
+<p>左图中每种蔬菜分别看成一种颜色，并通过概括的颜色，来对于编辑文字。<br />一般而言，图片中的色彩信息是比较复杂的，这时候需要眯起眼睛，虚化形象，留下简单的色彩印象，什么颜色是大面积的，这种颜色就是这个图像中的主色。</p>
+<p>色彩集合的搭配：<br />1从图像中选择的颜色搭配是最简单的搭配方法<br />2也可以采用大胆的对比色搭配</p>
+<p>3如果一个色彩集合中，色彩分布比较零散，则需要一一做分析。从整体观察色彩布局、面积、呼应是否合理统一。或者用无彩色将它们整理连接起来，或在图像与图像之间填上色块，将图像与画面融合一体</p>
+<p>图案色彩集合：<br />图案是一种有规律的色彩集合，可以看成一种颜色来进行搭配<br />也是一种有传播内涵的色彩，使用时要注意起表达的文化特征<br />图案的花色与色彩之间也有很紧密的联系，色冷的几何图案，适合成熟冷静；暖色可爱图案，则适合活泼、女性</p>
+<p>文字色彩集合：<br />正文文字多用黑白灰无彩色，阅读感受上，会忽略文字有带有的无彩色，而改为有彩色时，则无法忽略文字色彩的存在。文字所展示的图像与带有的色彩会比文字本身的含义更加“抢镜”<br />而作为图形的文字，则具有更大的设计空间。</p>
+<p>图标色彩集合：<br />设计好的图标，给人精湛专业的感觉</p>
+<p><strong>chapter4 黑、白、灰，天生的调和色</strong><br /><strong>色彩调和的含义：</strong><br />**1色彩调和是色彩配色的一种形态，使人感到愉悦，舒适好看的配色通常是色彩调和后的结果</p>
+<p><strong>2色彩调和是色彩搭配的一种手段，如果想要将看起来不和谐的颜色组合在一起，就需要进行色彩调和</strong></p>
+<p>任何两种颜色放在一起，其中一个颜色都会被当做其他颜色的参照物。它们之间的色彩对比关系是绝对的，色相、纯度、明度上的差异，必然会导致不同程度的对比。过分的对比需要加强共性来进行调和，过分暧昧的颜色配比需要加强对比来进行调和。</p>
+<p>色彩调和的方法：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910145340-96635989-f44d-411a-b63e-19ec78b1a8a3.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=uebc57749&amp;name=image.png&amp;originHeight=580&amp;originWidth=800&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=431037&amp;status=done&amp;style=none&amp;taskId=uc4672c9c-6f9b-4d3a-b386-490e9b203d3&amp;title=" alt="image.png" /><br />1面积调和（如右图）尽量避免1：1的对立面积出现，<br />一般使用5：3~3：1会比较好，<br />如果三种颜色则可以使用5：3：2</p>
+<p>2点缀调和（颜色空间混合）。在对比强烈的色彩双方，互相点缀对方的色彩。这是一种视觉的空间混合</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910145355-ffa197ec-2fcb-498f-b9f7-f77ba8786b8a.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=ua7b831c0&amp;name=image.png&amp;originHeight=113&amp;originWidth=800&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=120750&amp;status=done&amp;style=none&amp;taskId=udb15963b-60a9-44d4-8fb6-cf2b458e445&amp;title=" alt="image.png" /></p>
+<p>3互混调和：把两种颜色混合到一起，达到你中有我，我中有你的状态。从而得到第三种颜色。这第三种颜色，自然可以与前两种颜色都统一在一起。<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910146300-07c700ed-bd4d-4122-a742-67ace08edc22.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=u1dcf4b0d&amp;name=image.png&amp;originHeight=573&amp;originWidth=800&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=547678&amp;status=done&amp;style=none&amp;taskId=u96221cb1-22c4-4236-b209-12a7a9829a5&amp;title=" alt="image.png" /><br />4<strong>隔绝调和：画面中的色彩过分强烈或者色彩含混不清（图片较多），可运用黑、白、灰、金、银</strong><br />等同一色线，把颜色进行勾边隔离。<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910147768-9a863ea7-53ce-4d67-8fd6-63c39861396d.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=u9bef7e7b&amp;name=image.png&amp;originHeight=533&amp;originWidth=800&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=557303&amp;status=done&amp;style=none&amp;taskId=u69e7d87a-7250-438c-8b35-69d38626060&amp;title=" alt="image.png" /></p>
+<p>5秩序调和：也就是按照颜色渐变的顺序进行排序调和（比如彩虹）<br />6最简单的方法：同一调和。包括同色相、同明度、同饱和度的调和。<br />同色相即指色相环中60°之内的色彩。<br />同明度是指被选定的色彩各色度明度相同<br />同饱和度是指颜色饱和度相同，基调一致，达成统一外观</p>
+<p><strong>黑、白、灰作为调和色更可以让作品稳定。综合运用可以使作品更受关注</strong><br /><strong>白色作为背景常被忽略，白色可以使有彩色更轻盈、更透气</strong><br /><strong>灰色作为辅助色，让画面有质感、有氛围，作用关键。与灰色差异大的色彩，更适合强烈的突出主题；与灰色差异小的色彩，更容易体现出高雅的氛围</strong><br /><strong>黑色则可以使得任何复杂的颜色都稳定下来，使得画面有重心、有秩序。</strong><br />**</p>
+<p><strong>chapter5相近色调或对比色调调和</strong><br />在色彩搭配中，不要盲目进行，而是确定一个大的方向后，朝着这个方向寻找、调整、改良。在细节上花时间打磨。</p>
+<p>色彩搭配有三个极端：<br />1单一色：本身单一色无法形成颜色搭配，单一色搭配是指相近色搭配。同类色基调是温和的，可以在同一颜色周围选色，或仅仅改变明度饱和度。这样的画面通常是柔和的基调；</p>
+<p>2强烈的对比色：效果强烈，戏剧性，冲突非常明显。为了营造和突出某一个元素时比较适合<br />3五颜六色：这种情况可以使用无彩色辅助，不常用。</p>
+<p>配色思路：没有思路的时候，从色彩基调入手</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910149456-3ca79717-cfef-4b51-adef-d8bc13e6a488.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=udee5201c&amp;name=image.png&amp;originHeight=522&amp;originWidth=800&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=827503&amp;status=done&amp;style=none&amp;taskId=u111205c1-7bfb-4afd-945f-3749b7fcc0c&amp;title=" alt="image.png" /></p>
+<p>1寻找共性、统一的相近色调配色<br />基调统一，找到色彩之间共性的地方，达到同类色调外观统一（如右图第一张是同类色统一色调，第二张为图片取色统一基调）</p>
+<p>2寻找强烈感受、戏剧冲突的对比色调配色思路<br />相似色调虽然画面统一，和谐，但它是一种比较温和的手段，如果需要创作更有戏剧性，更具对立色彩倾向的作品，就需要使用对比色调搭配。</p>
+<p>面积上：可以使用小范围的对比，也可以使用大范围的对比，或者在面积对比上进行强化对比的关系。<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910149799-967a76bf-e307-40e4-b493-fa0f8140ee0e.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=ub4ea8505&amp;name=image.png&amp;originHeight=543&amp;originWidth=800&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=787358&amp;status=done&amp;style=none&amp;taskId=ub705810e-f6cd-476c-ba7c-113682d0fe5&amp;title=" alt="image.png" /><br />3同时用两种思路进行色彩设计<br />同类色寻找色彩之间的共性，对比色强调戏剧性。同时运用，会使画面在和谐与冲突之间达到平衡。<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910149832-f4131f53-fc4c-4c92-a46a-65d818ef73e8.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=ud9a607c9&amp;name=image.png&amp;originHeight=537&amp;originWidth=800&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=622383&amp;status=done&amp;style=none&amp;taskId=u14c08150-6b62-43a5-a016-b61aa9b95e3&amp;title=" alt="image.png" /></p>
+<p><strong>chapter6色彩情感的运用</strong><br /><strong>色彩的情感实际上是我们对于外界事物的一种审美感情</strong><br />抽象色彩与具象色彩的区别在于，抽象色彩上附着了人的情感**</p>
+<p>在人类漫长的历史中，人们看待色彩不是单纯的从色相上判断的，而是从色彩依附的载体、色彩的来源、使用色彩的族群和不同的文化中寻找更多的信息加以理解。</p>
+<p><strong>红色</strong>：成熟的苹果是红色，红色的苹果是具象的色彩，同时红色也代表了成熟。<br />红色代表食物中重要的颜色，同时也代表健康，积极，时尚，文化。淡雅的红色常用作女性色彩，娇艳的红色往往表示积极向上的精髓，偶尔也会表示恐怖，神秘感。<br /><strong>橙色</strong>：多数家庭的感觉，温暖，阳光，欢快。同时也是醒目的，没有太多负面情感的颜色。<br /><strong>黄色</strong>：最醒目、最明亮的颜色。适合儿童，有活泼，开放的心情。<br /><strong>绿色</strong>：春天的颜色，和平，生命，环保，常用语医疗和农业等。<br />**蓝色：**中国有很长的海岸线，沿海地方都比较喜欢使用蓝色<br /><strong>紫色</strong>：幻想色，不切实际的主题中。既优雅也温柔，庄重又华丽，成熟女人的象征。同时也是冷色，有阴暗、冷漠的一面。<br /><strong>粉色</strong>：少女的颜色<br /><strong>白色</strong>：是如空气一般的存在，设计中绝对少不了<br /><strong>灰色</strong>：与有彩色搭配，呈现出高雅，成熟一面，不同深浅的灰色搭配额，给人感受又十分消极<br />**黑色：**比较常用与男士，重要场合，不可侵犯的感觉。</p>
+<p><strong>每种颜色都有冷暖</strong>：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910149688-69c48518-4304-4ea6-85f4-0a90a88e8d36.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=u8e04116a&amp;name=image.png&amp;originHeight=458&amp;originWidth=734&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=228756&amp;status=done&amp;style=none&amp;taskId=u439b7833-ca3d-4ff5-8c94-a7b1f2298a7&amp;title=" alt="image.png" /></p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910149740-10b33081-878a-45c6-975b-d5dce15d9b3d.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=uf457725e&amp;name=image.png&amp;originHeight=388&amp;originWidth=388&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=116374&amp;status=done&amp;style=none&amp;taskId=u1e8ccc7c-98a2-47f1-b6f4-21751a4b188&amp;title=" alt="image.png" /></p>
+<p>原色中红色为暖色，蓝色为冷色。<br />同时在原色中加黄色颜色发暖，加蓝色发冷。<br />当画面处于基调是暖调时，<br />在冷色中加黄色达到偏暖的颜色也可以使用。</p>
+<p>比如右图，湖蓝是一种暖色的蓝<br />深蓝、蓝灰就是冷色的蓝</p>
+<p><strong>阴影也有冷暖：</strong><br />太阳与灯泡是光通常是暖光，日光灯通常是冷光。冷光产生的阴影发蓝，发冷；暖光产生的阴影发红、发暖。</p>
+<p>每种颜色的冷暖色可产生两级情感：暖色的蓝给人干净、整洁、智慧 和柔和等，冷色的蓝虽然也有智慧的情况信息，但是更多的带有冷酷的、冷眼旁观的，公正的和商务的效果。</p>
+<p><strong>chapter7基调关键词，避开主色谈配色</strong><br />关于配色的选择，除了根据主色，还可以根据色彩基调原则来确定</p>
+<p>1纯色色调：积极健康的色调。使用纯色为主色，搭配饱和度低的颜色作为辅助色，此时需要扩大纯色面积，否则无法展现出纯色特征。<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910151685-3ab4a127-5794-4e24-8a79-c3c1fef03f90.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=u68642b5d&amp;name=image.png&amp;originHeight=364&amp;originWidth=758&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=354628&amp;status=done&amp;style=none&amp;taskId=u9e5dc56c-4681-4f97-9483-9fe002aa16f&amp;title=" alt="image.png" /><br />2明色色调：清爽明快的色调。在纯色的基础上加入白色得到色彩。</p>
+<p>明色作为主色时，并不十分稳定，但是只要两种明色作为主色，配合小面积的其他颜色，也可以很出彩。<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910152550-ecd7e0bd-22ba-4155-9789-d1a38dc06b0c.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=u0262d60d&amp;name=image.png&amp;originHeight=380&amp;originWidth=778&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=434130&amp;status=done&amp;style=none&amp;taskId=ud594871c-6659-416b-941b-af9636ecf81&amp;title=" alt="image.png" /><br />3淡色色调： 柔软天真的色调。明色加白色得到淡色色调。非常的轻柔，温柔</p>
+<p>不建议作为主色，非常的不稳定。但如果一组单色的组合，也可以表达出轻柔的质感效果<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910152055-8d3069e3-58e6-4dc1-9d86-a89bfce984e3.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=ue0f84f92&amp;name=image.png&amp;originHeight=384&amp;originWidth=790&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=347996&amp;status=done&amp;style=none&amp;taskId=u0451f2c9-ecda-435c-a16e-54ab72e351b&amp;title=" alt="image.png" /><br />4浊色色调：成熟优雅的色调。纯色中加灰色。在绘画中比较忌讳，加灰色会使得画面变脏。但是在计算机调色中，颜色展示的效果更纯，则可以一试。使用与成年人，形成稳重，素雅感。但是要注意加入灰色的量，注意色彩倾向的变化。浊色的开放度不够，可以配合补色达到稍许开放亲和的效果。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910152786-cd426637-1039-41f0-baf2-a1710b57affd.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=u0238ed83&amp;name=image.png&amp;originHeight=364&amp;originWidth=744&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=406515&amp;status=done&amp;style=none&amp;taskId=u9ee20763-37b3-4a52-b292-0450b353703&amp;title=" alt="image.png" /><br />5淡浊色色调：优雅的色调。淡色加黑得到淡浊色。与浊色的情感相似。更加优雅，更偏重女性化</p>
+<p>6暗色色调：强调商务的色调。纯色加黑。在那行相关产品中常出现。<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910152567-712dbc0c-dd4a-4b41-abf0-3a9f02cc4f8c.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=u695523a3&amp;name=image.png&amp;originHeight=366&amp;originWidth=754&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=253093&amp;status=done&amp;style=none&amp;taskId=udc0c00d1-490f-41eb-b5ad-4c2d6c9a4c0&amp;title=" alt="image.png" /></p>
+<p>确定颜色之前，先确定颜色明暗的基调。然后可以使用多种色调的组合，在健康的纯色中加入优雅的单色，可以消除纯色抵挡的感觉，转为质朴，同时增加了色彩的多层次感。<br />色调组合的原则：注意主色调与对抗色调的面积配比，面积较大的为主色调，也是重点表现的色调，而对抗色调要选择可以为主色补色的色调。</p>
+<p><strong>chapter8突破素材的形式，提取色彩-分析色彩-实践运用色彩</strong><br />**经验是提高配色能力的重要指标。在时间不够的情况下，先要学习优秀的作品。分析和练习是非常必要的，吧看到的优秀配色从原本形式中提取出来，应用到新的形式中去。</p>
+<p><strong>我们可以从任何设计作品中获取配色的借鉴，包括网页，平面，服装，插画等等。</strong><br />**</p>
+<p>**</p>
+<p><strong>chapter9突破对立色彩的感受：从一端到另一端的选择</strong><br /><strong>搭配出一种情感效果，很可能就无法得到另一种情感效果，在这种情况下就要合适的取舍，明确具体的配色目的。</strong><br /><strong>同样是浊色➕明色，不同的颜色搭配，可以得出不同情感的颜色搭配效果。可以是活泼的，可以是平静的，也可以平时，华丽的。</strong><br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1637910153027-db451be0-0970-40ea-8f59-3245d0972894.png#clientId=ue8ec18fd-e97e-4&amp;from=paste&amp;id=u1eb6f1ef&amp;name=image.png&amp;originHeight=466&amp;originWidth=770&amp;originalType=url&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=307472&amp;status=done&amp;style=none&amp;taskId=u35601eab-b6d3-4d7d-92fd-bf99d489b42&amp;title=" alt="image.png" /></p>
+<p>最后：<br />色彩有冷暖之分，有性别之分，也有不同的感情基调。所以把色彩也当成有灵魂的“人”，在搭配的过程中，时时刻刻考虑到不同的色彩搭配在一起要“和谐相处”，才能构建出和谐的画面。</p>
+]]></content><link href="https://github.com/srtian/Blog/issues/18" rel="alternate"/><category term="Web"/><category term="产品"/><published>2023-03-02T09:28:33+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/17</id><title>关于B端产品的一些思考以及体会</title><updated>2023-03-02T09:29:03.728239+00:00</updated><content type="html"><![CDATA[<p>这半年来，由于某些原因，我在开发之余，也承担了平台前端产品需求的挖掘，设计和梳理的工作，也做成了诸如公开数据集模块，模型自动化等需求的前端交互设计或者是总体的业务流程设计，有些还挺不错，受到了一些好评。做着做着就由感而发，也对B端的产品设计有了一些自己的思考，因此总结一下这半年来，在这方面的体会以及心路历程。</p>
 <h2>一、AI 产品的不确定性</h2>
 <p>相较于传统的B端产品，AI平台最大的特点就是不确定，这个不确定表现在很多方面。譬如：</p>
 <ul>
@@ -53,7 +121,7 @@
 <li>文字 or 邮件关怀</li>
 <li>图形</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/17" rel="alternate"/><published>2023-03-02T09:27:47+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/16</id><title>关于 BPM 的一些记录与思考</title><updated>2023-03-02T09:28:11.657889+00:00</updated><content type="html"><![CDATA[<h1>BPMN2 及相关概念</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/17" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:47+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/16</id><title>关于 BPM 的一些记录与思考</title><updated>2023-03-02T09:29:03.843450+00:00</updated><content type="html"><![CDATA[<h1>BPMN2 及相关概念</h1>
 <p>去年刚入职的时候，学习了 AWS 的关于 BPMN2 的一些文档，输出一下自己对于文档的理解：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1622973941077-4798449f-2c53-465d-8e83-17e0dd2e48a7.png#clientId=ud374fb22-d32f-4&amp;from=paste&amp;height=500&amp;id=uec962f42&amp;name=image.png&amp;originHeight=744&amp;originWidth=2356&amp;originalType=binary&amp;ratio=1&amp;size=298008&amp;status=done&amp;style=none&amp;taskId=ue26f5275-bf9c-4914-a7f9-16be68b24f6&amp;width=1583" alt="image.png" /></p>
 <h1>流程</h1>
 <h2>流程是什么？</h2>
@@ -84,7 +152,7 @@
 <li>客户：在新的流程体系里，一切流程都是面向客户的，反思流程是否走完了全过程，实现了客户的价值与要求（需要回答两个问题：1. 对客户要有清晰的认知，客户是谁？客户端的需求是什么？2.用什么去实现客户价值）</li>
 </ol>
 <p>从上述必要构成出发，从领域驱动设计的角度来讲，我们对于一个流程的模型，或许可以如此抽象：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1624416125530-6d61e184-1a47-43e3-98d6-5e2308d0ad92.png#clientId=uc9de569a-6de0-4&amp;from=paste&amp;height=954&amp;id=ufd557560&amp;name=image.png&amp;originHeight=954&amp;originWidth=2090&amp;originalType=binary&amp;ratio=1&amp;size=126280&amp;status=done&amp;style=none&amp;taskId=udd88226e-99f5-48c5-b212-be8e0852401&amp;width=2090" alt="image.png" /></p>
-]]></content><link href="https://github.com/srtian/Blog/issues/16" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:22+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/15</id><title>浅谈 Rust 前端应用开发</title><updated>2023-03-02T09:28:11.858516+00:00</updated><content type="html"><![CDATA[<p>随着技术的不断演进，近年来愈来越多的非前端开发语言诸如：Rust、Go 等也开始进入前端/跨端应用开发领域，并收获了不小的开源社区的关注。因此本次在此尝试对基于 Rust 的一些 前端/跨端 应用开发进行一些分析，来分析一下这种开发模式的技术基础、基本方案等情况，由于篇幅原因将分为两部分：第一部分，主要讨论 Rust 前端应用开发的基本现状、原理以及收益等，而第二部分则会讨论号称 Electron 终结者的 Tauri 的基本情况、最大卖点、基本架构组成等。
+]]></content><link href="https://github.com/srtian/Blog/issues/16" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:22+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/15</id><title>浅谈 Rust 前端应用开发</title><updated>2023-03-02T09:29:04.016158+00:00</updated><content type="html"><![CDATA[<p>随着技术的不断演进，近年来愈来越多的非前端开发语言诸如：Rust、Go 等也开始进入前端/跨端应用开发领域，并收获了不小的开源社区的关注。因此本次在此尝试对基于 Rust 的一些 前端/跨端 应用开发进行一些分析，来分析一下这种开发模式的技术基础、基本方案等情况，由于篇幅原因将分为两部分：第一部分，主要讨论 Rust 前端应用开发的基本现状、原理以及收益等，而第二部分则会讨论号称 Electron 终结者的 Tauri 的基本情况、最大卖点、基本架构组成等。
 <a name="rwzVM"></a></p>
 <h1>一、兴起的基础</h1>
 <p>对于前端应用开发有一定了解的同学应该知道，可以在浏览器端运行的编程语言主要有两种：</p>
@@ -200,7 +268,7 @@ pub struct Element {
 <li><a href="https://rustwasm.github.io/docs/book/introduction.html">https://rustwasm.github.io/docs/book/introduction.html</a></li>
 <li><a href="https://webassembly.org/docs/security/">https://webassembly.org/docs/security/</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/15" rel="alternate"/><category term="Rust"/><published>2023-03-02T09:25:44+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/14</id><title>浅谈 Rust 所有权机制</title><updated>2023-03-02T09:28:12.050759+00:00</updated><content type="html"><![CDATA[<h1>一、什么是 stack 和 heap</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/15" rel="alternate"/><category term="Rust"/><published>2023-03-02T09:25:44+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/14</id><title>浅谈 Rust 所有权机制</title><updated>2023-03-02T09:29:04.143614+00:00</updated><content type="html"><![CDATA[<h1>一、什么是 stack 和 heap</h1>
 <p>stack 和 heap 都用于变量的内存存储。对于大多数的编程人员来讲，都无需去关心内存是如何分配到 heap 和 stack 中的（实际上，对于 stack   和 heap 的区别，也很多人并不是很清楚）。譬如在JavaScript中，大多数人知道一个结论：基本数据类型放在 stack 中，而引用数据类型放在 heap 里面。但一旦问到，为何需要这样进行划分的时候，少有人可以说上一二。</p>
 <p>那它们到底有什么区别呢？ 首先它们虽然都是可供代码使用的内存，但结构是不同的。 stack是一个线性的数据结构，以放入值得顺序存储值并以相反的顺序取出值，也就是我们常说的：后进先出。其数据的输入和取出，则通常被称为 进栈、出栈。由于 <code>stack</code>是线性的数据结构，所以 stack 中的所有数据都是必须占用<strong>已知且固定</strong>的大小。</p>
 <p>而 heap 则是一个非线性的数据结构，是缺乏组织的。因此对于一些在初始时，大小未知或大小可能发生变化的数据，则可以放在堆中。当我们想要在堆中存储一些数据时，我们通常其实是请求一块大小合适的空间，然后操作系统在堆中搜索一个足够大的空间以匹配我们所请求的内存量，并将其标记为已用，并返回一个表示该位置地址的 **指针， **而这个指针也通常被存在 stack 中。这个过程也就是 <strong>堆内存分配</strong>，也常被称为 <strong>内存分配。</strong></p>
@@ -362,7 +430,7 @@ fn main() {
 }
 </code></pre>
 <p>如此我们就能将借用的变量进行返回来。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/14" rel="alternate"/><category term="Rust"/><published>2023-03-02T08:09:43+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/13</id><title>产品可用性之容错处理设计及实践</title><updated>2023-03-02T09:28:12.198690+00:00</updated><content type="html"><![CDATA[<h2>一、为什么说容错处理很重要</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/14" rel="alternate"/><category term="Rust"/><published>2023-03-02T08:09:43+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/13</id><title>产品可用性之容错处理设计及实践</title><updated>2023-03-02T09:29:04.280515+00:00</updated><content type="html"><![CDATA[<h2>一、为什么说容错处理很重要</h2>
 <p>B端产品由于其自身就具有一定的业务复杂度以及上手成本，因此在可用性方面，做好容错处理至关重要。一个好的容错处理既可以有效的提升用户使用产品的顺畅程度以及使用效率，也可以避免一些产品设计不够完善的问题的暴露。<br />
 <br />下图是我在学习尼尔森十大可用性原则时所做的学习思维导图：<br /></p>
 <p><img src="https://cdn.nlark.com/yuque/0/2020/svg/296173/1591757022787-9e968925-89d4-4a08-ad73-1f24b61a8298.svg" alt="" />从上述的思维导图我们不难发现，尼尔森所强调的可用性原则里面，绝大部分其实都和容错处理息息相关。我个人理解，容错处理我们可以在一下几个方面进行设计：</p>
@@ -415,7 +483,7 @@ fn main() {
 <br />类似的例子还有很多，比如PS，LR等操作软件，也提供了历史记录的功能，可以轻松回退的相应的地方<br /></p>
 <h2>结语</h2>
 <p>上述只是我个人在实践过程中的一些体会以及方法论，因为大家的产品特征不同，所要解决的问题，目标用户群体也不同。因此在具体的设计时，要根据自身的特点，去因地制宜的设计合理的容错处理机制。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/13" rel="alternate"/><category term="Web"/><category term="产品"/><category term="Top"/><published>2020-06-10T07:07:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/12</id><title>简述JavaScript模块化编程</title><updated>2023-03-02T09:28:12.370189+00:00</updated><content type="html"><![CDATA[<h1>简述JavaScript模块化编程</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/13" rel="alternate"/><category term="Web"/><category term="产品"/><category term="Top"/><published>2020-06-10T07:07:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/12</id><title>简述JavaScript模块化编程</title><updated>2023-03-02T09:29:04.401842+00:00</updated><content type="html"><![CDATA[<h1>简述JavaScript模块化编程</h1>
 <p>在早期编写JavaScript时，我们只需在 script 标签内写入JavaScript的代码就可以满足我们对页面交互的需要了。但随着时间的推移，时代的发展，原本的那种简单粗暴的编写方式所带来的诸如逻辑混乱，页面复杂，可维护性差，全局变量暴露等问题接踵而至，前辈们为了解决这些问题提出了很种的解决方案，其中之一就是JavaScript模块化编程。总的来说，它有以下四种优点：<br /></p>
 <ol>
 <li>解决项目中的全局变量污染的问题。</li>
@@ -770,7 +838,7 @@ export { add as add1 } from ./example.js; //以add这个名称导入，再以add
 export *  from ./example.js;
 </code></pre>
 <p><br />// 最后求一波暑期前端实习的坑位-_-||</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/12" rel="alternate"/><category term="JavaScript"/><published>2020-04-07T07:51:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/11</id><title>聊一聊常见的浏览器端数据存储方案</title><updated>2023-03-02T09:28:12.566983+00:00</updated><content type="html"><![CDATA[<h3>前言：</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/12" rel="alternate"/><category term="JavaScript"/><published>2020-04-07T07:51:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/11</id><title>聊一聊常见的浏览器端数据存储方案</title><updated>2023-03-02T09:29:04.545701+00:00</updated><content type="html"><![CDATA[<h3>前言：</h3>
 <p>五一假期在撸代码的时候用到cookie，感觉对浏览器的数据存储方案不是很了解，因此又去翻了两本大头书中间的关于浏览器端数据存储的章节，同时去MDN逛了逛，又看了几篇文章，算是对浏览器的数据存储方案有了一个了解，在此总结一下！</p>
 <h2>浏览器存储</h2>
 <p>在浏览器端存储数据对我们是很有用，这相当于赋予浏览器记忆的功能，可以纪录用户的所有状态信息，增强用户体验。比如当纪录用户的登陆状态时，可以让用户能够更快的进行访问，而不是每次登陆时都需要去进行繁琐的操作。</p>
@@ -1012,7 +1080,7 @@ request.onupgradeneededd = function(e) {
 <h4>3. indexedDB受同源策略的限制</h4>
 <p>indexedDB使用同源原则，这意味着它把存储空间绑定到了创建它的站点的源（典型情况下，就是站点的域或是子域），所以它不能被任何其他源访问。要着重指出的一点是 IndexedDB 不适用于从另一个站点加载进框架的内容 (不管是 <frame> 还是 &lt;iframe>。这是一项安全措施。详情请看这个：<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=595307">https://bugzilla.mozilla.org/show_bug.cgi?id=595307</a></p>
 <p>除此之外，IndexedDB还存在诸如：不适合存储敏感数据，相较于web存储机制的操作更加复杂等问题，这都是我们在使用IndexedDB时需要考虑的。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/11" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T10:04:17+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/10</id><title>React高阶组件的那些事，了解一下？</title><updated>2023-03-02T09:28:12.771442+00:00</updated><content type="html"><![CDATA[<h4>前言</h4>
+]]></content><link href="https://github.com/srtian/Blog/issues/11" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T10:04:17+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/10</id><title>React高阶组件的那些事，了解一下？</title><updated>2023-03-02T09:29:04.719489+00:00</updated><content type="html"><![CDATA[<h4>前言</h4>
 <p>学习react已经有一段时间了，期间在阅读官方文档的基础上也看了不少文章，但感觉对很多东西的理解还是不够深刻，因此这段时间又在撸一个基于react全家桶的聊天App（现在还在瞎78写的阶段，在往这个聊天App这个方向写），通过实践倒是对react相关技术栈有了更为深刻的理解，而在使用react-redux的过程中，发现connect好像还挺有意思的，也真实感受到了高阶组件所带来的便利，出于自己写项目本身就是为了学习的目的，因此对高阶组件又进行了一番学习。写下这篇文章主要是对高阶组件的知识进行一个梳理与总结，如有错误疏漏之处，敬请指出，不胜感激。</p>
 <h2>初识高阶组件</h2>
 <p><em>要学习高阶组件首先我们要知道的就是高阶组件是什么，解决了什么样的问题。</em></p>
@@ -1235,7 +1303,7 @@ class HOC extends ... {
 <p>实际上我们不用自己来写getDisplayName这个函数，recompose 提供了这个函数，我们只要使用即可。</p>
 <h4>结尾语</h4>
 <p>我们其他要注意的就是<a href="https://react.bootcss.com/react/docs/higher-order-components.html">官方文档</a>所说的几个约定与相关规范，在此我就不一一赘述了，感兴趣的可以自己去看看。最后很感谢能看到这里的朋友，因为水平有限，如果有错误敬请指正，十分感激！</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/10" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T10:00:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/9</id><title> 从 HTML5 WebSocket 到 Socket.io</title><updated>2023-03-02T09:28:12.970845+00:00</updated><content type="html"><![CDATA[<h2>HTML5 WebSocket概述</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/10" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T10:00:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/9</id><title> 从 HTML5 WebSocket 到 Socket.io</title><updated>2023-03-02T09:29:04.862519+00:00</updated><content type="html"><![CDATA[<h2>HTML5 WebSocket概述</h2>
 <p>作为新一代的web标准，HTML5为我们提供了很多有用的东西，比如canvas，本地存储（已经分离出去了），多媒体编程接口，当然还有我们的WebSocket。WebSocket是HTML5开始提供的一种浏览器与服务器间进行全双工通讯（full-duplex）的网络技术，可以传输基于信息的文本和二进制的数据。它于2011年被IETF定为标准 RFC 6455，同时WebSocket API也被W3C定为标准。</p>
 <h2>一、WebSocket产生的背景</h2>
 <h3>1.黎明前的黑暗——实时web应用的需求</h3>
@@ -1401,7 +1469,7 @@ client.on(&#x27;disconnect&#x27;,function(){
 <pre><code class="language-JavaScript">import io from &#x27;socket.io-client&#x27;
 const socket = io(&#x27;ws://localhost:8080&#x27;)
 </code></pre>
-]]></content><link href="https://github.com/srtian/Blog/issues/9" rel="alternate"/><category term="FE"/><category term="Web"/><category term="JavaScript"/><published>2019-09-28T09:59:23+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/8</id><title>Redux 源码解读</title><updated>2023-03-02T09:28:13.166762+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/9" rel="alternate"/><category term="FE"/><category term="Web"/><category term="JavaScript"/><published>2019-09-28T09:59:23+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/8</id><title>Redux 源码解读</title><updated>2023-03-02T09:29:05.100462+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>作为React全家桶的一份子，Redux为react提供了严谨周密的状态管理。但Redux本身是有点难度的，虽然学习了React也有一段时间了，自我感觉算是入了门，也知道redux的大概流程。但其背后诸如creatstore,applymiddleware等API背后到底发生了什么事情，我其实还是不怎么了解的，因此最近花了几天时间阅读了Redux的源码，写下文章纪录一下自己看源码的一些理解。（redux4.0版本）</p>
 <h3>一、源码结构</h3>
 <p>Redux是出了名的短小精悍（恩，这个形容很贴切），只有2kb大小，且没有任何依赖。它将所有的脏活累活都交给了中间件去处理，自己保持着很好的纯洁性。再加上redux作者在redux的源码上，也附加了大量的注释，因此redux的源码读起来还是不算难的。</p>
@@ -1742,7 +1810,7 @@ export default function bindActionCreators(actionCreators, dispatch) {
 </code></pre>
 <h3>小节</h3>
 <p>看一遍redux，感觉设计十分巧秒，不愧是大佬的作品。这次看代码只是初看，往后随着自己学习的不断深入，还需多加研究，绝对还能得到更多的体会。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/8" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:58:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/7</id><title>深入理解 Redux 中间件——走马观花</title><updated>2023-03-02T09:28:13.393462+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/8" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:58:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/7</id><title>深入理解 Redux 中间件——走马观花</title><updated>2023-03-02T09:29:05.209737+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>最近几天对 redux 的中间件进行了一番梳理，又看了 redux-saga 的文档，和 redux-thunk 和 redux-promise 的源码，结合前段时间看的redux的源码的一些思考，感觉对 redux 中间件的有了更加深刻的认识，因此总结一下。</p>
 <h3>一、Redux中间件机制</h3>
 <p>Redux本身就提供了非常强大的数据流管理功能，但这并不是它唯一的强大之处，它还提供了利用中间件来扩展自身功能，以满足用户的开发需求。首先我们来看中间件的定义：</p>
@@ -1919,7 +1987,7 @@ function loadInitData(ip) {
 <li>《深入浅出React和Redux》</li>
 <li>《深入React技术栈》</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/7" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:56:41+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/6</id><title>初探 HTML5 Web Workers</title><updated>2023-03-02T09:28:13.566262+00:00</updated><content type="html"><![CDATA[<h3>一、Web Workers是什么</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/7" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:56:41+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/6</id><title>初探 HTML5 Web Workers</title><updated>2023-03-02T09:29:05.358551+00:00</updated><content type="html"><![CDATA[<h3>一、Web Workers是什么</h3>
 <blockquote>
 <p>Web Worker为Web内容在后台线程中运行脚本提供了一种简单的方法。线程可以执行任务而不干扰用户界面。此外，他们可以使用XMLHttpRequest执行 I/O (尽管responseXML和通道属性总是为空)。一旦创建， 一个worker 可以将消息发送到创建它的JavaScript代码, 通过将消息发布到该代码指定的事件处理程序 (反之亦然)。 —— MDN</p>
 </blockquote>
@@ -2047,7 +2115,7 @@ worker.postMessage({
 <li><a href="https://qiutc.me/post/the-multithread-in-javascript-web-worker.html">https://qiutc.me/post/the-multithread-in-javascript-web-worker.html</a></li>
 <li><a href="https://juejin.im/post/5a90233bf265da4e92683de3">https://juejin.im/post/5a90233bf265da4e92683de3</a></li>
 </ol>
-]]></content><link href="https://github.com/srtian/Blog/issues/6" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:54:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/5</id><title>浅谈HTTP缓存</title><updated>2023-03-02T09:28:13.729895+00:00</updated><content type="html"><![CDATA[<h3>一、HTTP缓存概述（HTTP Cache）</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/6" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:54:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/5</id><title>浅谈HTTP缓存</title><updated>2023-03-02T09:29:05.568766+00:00</updated><content type="html"><![CDATA[<h3>一、HTTP缓存概述（HTTP Cache）</h3>
 <p>要搞清楚HTTP缓存，首先当然是要搞清楚缓存是啥，按照MDN的描述，缓存是这样的：</p>
 <blockquote>
 <p>缓存是一种保存资源副本并在下次请求时直接使用该副本的技术。当 web 缓存发现请求的资源已经被存储，它会拦截请求，返回该资源的拷贝，而不会去源服务器重新下载。这样带来的好处有：缓解服务器端压力，提升性能(获取资源的耗时更短了)。对于网站来说，缓存是达到高性能的重要组成部分。缓存需要合理配置，因为并不是所有资源都是永久不变的：重要的是对一个资源的缓存应截止到其下一次发生改变（即不能缓存过期的资源）。</p>
@@ -2115,7 +2183,7 @@ cache-control: max-age=691200
 <li><a href="https://www.cnblogs.com/lyzg/p/5125934.html#_label3">https://www.cnblogs.com/lyzg/p/5125934.html#_label3</a></li>
 <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching_FAQ">https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching_FAQ</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/5" rel="alternate"/><category term="FE"/><category term="Web"/><category term="Basis"/><published>2019-09-28T09:52:53+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/4</id><title>五分钟，简单聊一聊React Component的发展历程</title><updated>2023-03-02T09:28:13.902942+00:00</updated><content type="html"><![CDATA[<h3>一、 前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/5" rel="alternate"/><category term="FE"/><category term="Web"/><category term="Basis"/><published>2019-09-28T09:52:53+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/4</id><title>五分钟，简单聊一聊React Component的发展历程</title><updated>2023-03-02T09:29:05.679578+00:00</updated><content type="html"><![CDATA[<h3>一、 前言</h3>
 <p>随着 react 最新的一个大版本中，给我们带来了 Hooks：<a href="https://reactjs.org/blog/2019/02/06/react-v16.8.0.html">React v16.8: The One With Hooks</a>，从而将 Function component 的能力提高了一大截，成功的拥有了可以与 Class component 抗衡的能力。但话说回来，虽然 Hooks 看起来很美好，最近也有不少文章都讲解了Hooks这一“黑魔法”，但技术的不断演进，本身就是一个解决以往所存在问题的过程，因此我个人认为着眼于现在，回望过去，去看一看 react component 的发展之路，去看看 Class component 以及 Function component 为什么会出现以及它们出现的意义，所要解决的问题，也对于我们全面了解 react 是很有帮助的。</p>
 <p>从 react component 的发展历程上来看，它主要是经历了一下三个阶段：</p>
 <ol>
@@ -2288,7 +2356,7 @@ export default MyComponent
 <li><a href="http://taobaofed.org/blog/2018/11/27/hooks-and-function-component/">http://taobaofed.org/blog/2018/11/27/hooks-and-function-component/</a></li>
 <li><a href="https://www.freecodecamp.org/news/this-is-why-we-need-to-bind-event-handlers-in-class-components-in-react-f7ea1a6f93eb/">https://www.freecodecamp.org/news/this-is-why-we-need-to-bind-event-handlers-in-class-components-in-react-f7ea1a6f93eb/</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/4" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:52:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/3</id><title>浅析 Rematch 源码</title><updated>2023-03-02T09:28:14.087467+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/4" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:52:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/3</id><title>浅析 Rematch 源码</title><updated>2023-03-02T09:29:05.793330+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>入职后公司用的技术栈还是 react，但状态管理由我原本熟悉的 redux 进化成了在 redux 基础上封装而成的 rematch。用起来也着实方便不少，减少了很多样板代码的编写，同时也不用引入中间件来管理异步请求了，但在用起来的过程中难免就会引起了我对 rematch 的一些小疑问：</p>
 <ul>
 <li>它是怎么封装 诸如action creator这些以往在 redux 中繁琐的“样本”代码的？</li>
@@ -2691,7 +2759,7 @@ export default function({
 <li><a href="https://juejin.im/post/5b13fe155188257d6c046728">Redux 源码解读</a></li>
 <li><a href="https://juejin.im/post/5b237569f265da59bf79f3e9">深入理解 Redux 中间件</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/3" rel="alternate"/><category term="FE"/><category term="JavaScript"/><category term="React"/><published>2019-09-28T09:41:20+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/2</id><title>《Don't Make Me Think》读书笔记</title><updated>2023-03-02T09:28:14.267349+00:00</updated><content type="html"><![CDATA[<h3>一、别让我思考</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/3" rel="alternate"/><category term="FE"/><category term="JavaScript"/><category term="React"/><published>2019-09-28T09:41:20+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/2</id><title>《Don't Make Me Think》读书笔记</title><updated>2023-03-02T09:29:05.947139+00:00</updated><content type="html"><![CDATA[<h3>一、别让我思考</h3>
 <p>网页的易用性最重要的一点就是无需用户去思考。这也代表着交互一般劲量趋向于简单化，平整化，以减少用户的认知负担，减少对用户的干扰。</p>
 <p>示例：亚马逊搜索没有提及一定要去搜索什么内容，只会对你所输入的进行分析，这样就会减少用户的思考的成本（淘宝也是如此，通过自然语言处理来对用户的输入进行分析）</p>
 <p>比较典型的地方：</p>
@@ -2849,7 +2917,7 @@ export default function({
 <li>容易从错误中恢复</li>
 <li>如有不确定，记得道歉</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/2" rel="alternate"/><category term="Notes"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:34:00+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/1</id><title>浅析浏览器进程发展历程</title><updated>2023-03-02T09:28:14.463568+00:00</updated><content type="html"><![CDATA[<h3>一、浏览器的多进程概括</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/2" rel="alternate"/><category term="Notes"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:34:00+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/1</id><title>浅析浏览器进程发展历程</title><updated>2023-03-02T09:29:06.112738+00:00</updated><content type="html"><![CDATA[<h3>一、浏览器的多进程概括</h3>
 <p>要想搞明白什么是浏览器的多进程，首先得知道什么是进程。按照维基百科的说法：</p>
 <blockquote>
 <p>进程是计算机中已运行程序的实体。进程是线程的容器，进程本身不运行。程序本身只是指令的集合，进程才是程序（指令）的真正运行。每个程序可以有多个进程，每个进程都有自己的资源。</p>
