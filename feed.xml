@@ -1,5 +1,90 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<feed xmlns="http://www.w3.org/2005/Atom"><id>https://github.com/srtian/Blog</id><title>RSS feed of srtian's Blog</title><updated>2023-03-02T09:25:47.653038+00:00</updated><author><name>srtian</name><email>shenruotian@gmail.com</email></author><link href="https://github.com/srtian/Blog"/><link href="https://raw.githubusercontent.com/srtian/Blog/master/feed.xml" rel="self"/><generator uri="https://lkiesow.github.io/python-feedgen" version="0.9.0">python-feedgen</generator><entry><id>https://github.com/srtian/Blog/issues/15</id><title>浅谈 Rust 前端应用开发</title><updated>2023-03-02T09:25:48.015055+00:00</updated><content type="html"><![CDATA[<p>随着技术的不断演进，近年来愈来越多的非前端开发语言诸如：Rust、Go 等也开始进入前端/跨端应用开发领域，并收获了不小的开源社区的关注。因此本次在此尝试对基于 Rust 的一些 前端/跨端 应用开发进行一些分析，来分析一下这种开发模式的技术基础、基本方案等情况，由于篇幅原因将分为两部分：第一部分，主要讨论 Rust 前端应用开发的基本现状、原理以及收益等，而第二部分则会讨论号称 Electron 终结者的 Tauri 的基本情况、最大卖点、基本架构组成等。
+<feed xmlns="http://www.w3.org/2005/Atom"><id>https://github.com/srtian/Blog</id><title>RSS feed of srtian's Blog</title><updated>2023-03-02T09:28:11.039633+00:00</updated><author><name>srtian</name><email>shenruotian@gmail.com</email></author><link href="https://github.com/srtian/Blog"/><link href="https://raw.githubusercontent.com/srtian/Blog/master/feed.xml" rel="self"/><generator uri="https://lkiesow.github.io/python-feedgen" version="0.9.0">python-feedgen</generator><entry><id>https://github.com/srtian/Blog/issues/17</id><title>关于B端产品的一些思考以及体会</title><updated>2023-03-02T09:28:11.423608+00:00</updated><content type="html"><![CDATA[<p>这半年来，由于某些原因，我在开发之余，也承担了平台前端产品需求的挖掘，设计和梳理的工作，也做成了诸如公开数据集模块，模型自动化等需求的前端交互设计或者是总体的业务流程设计，有些还挺不错，受到了一些好评。做着做着就由感而发，也对B端的产品设计有了一些自己的思考，因此总结一下这半年来，在这方面的体会以及心路历程。</p>
+<h2>一、AI 产品的不确定性</h2>
+<p>相较于传统的B端产品，AI平台最大的特点就是不确定，这个不确定表现在很多方面。譬如：</p>
+<ul>
+<li>业界没有明显的标杆性的产品可做参考，且就算部分友商也有类似的项目，也大多是内部使用，并没有开源。因此很多东西需要自己去探索，去踩坑。只有坑踩多了，才会有更明确的方向感，才会逐步去靠近所要解决的核心问题</li>
+<li>另外，在做 AI 平台的时候，可以很明显的感受得到，有时候需求方对于自己想要的东西也是不确定的，有时候嘴上说着我们就需要简单的功能，这样会比较方便。但随着沟通的不断深入，需求就会不断的被挖出来（这点我体会很深，毕竟我可是疯狂给自己加需求小王子，手动狗头）</li>
+<li>等等</li>
+</ul>
+<p>这些不确定性，都让我们在产品的探索过程中，不得不去不断试错，从错误和失败中吸取教训，并逐步完善自己对于产品设计的方法论。比如：</p>
+<ul>
+<li>做事情要聚焦，做平台也是，开发不是去堆砌功能，而是要发现问题，解决问题；在完成功能的开发后，要跟进这个功能的使用情况，及时收集种子用户的使用意见，并快速作出相应的改进。</li>
+<li>做一个功能不能拍脑袋决定，不能觉得有用就去开发。这样成了还好，不成的话即浪费了自己的开发成本，又徒增平台的复杂性，得不偿失。合理的做法是，要想明白自己做的功能是给谁做的，解决了他什么问题。然后将这功能的原型准备好，找对应的同学好好聊聊，看他们是否真的觉得这个问题是他们的痛点，然后再决定是不是要做。</li>
+</ul>
+<p>因此，总的来讲，对于像AI平台，这种不能充分吸取其他产品的设计经验、充满着不确定性的产品，首先要做的就是保持理性，保持克制，尽量减少试错成本，不断试错，快速迭代。（个人经验是如果方便的话，如果一个需求有对应的提出人，可以在完成一个简单的原型后就找到对应的需求提出人，确定基础功能的实现是符合他的预期的）</p>
+<h2>二、易用性</h2>
+<p>B端产品的一大特点就是普遍业务复杂度高，而AI平台在此基础上同时还有较高的学习成本。按照俞军老师的用户价值公式：</p>
+<blockquote>
+<p>用户价值=新体验-旧体验-切换成本</p>
+</blockquote>
+<p>因此如何增强用户价值，在做好新体验的同时，切换成本的缩小至关重要，这也是对于B端产品来说，易用性很重要的原因，因为它不仅可以作用于新体验，更可以在切换成本的缩小上提供巨大助力。</p>
+<p>这里的成本，对于AI平台，我个人理解可以分为几个方面：</p>
+<ul>
+<li>学习成本：名词较多，业务场景复杂，上手成本较高，需要耗费不少精力以及时间去学习。</li>
+<li>资源迁移成本：AI平台做的很多事情，有时候算法工程师都有着自己的一些实现方式，只不过这些方式不利于统一管理或者是记录。譬如数据管理模块，模型管理模块这些模块，在进行迁移的时候，需要算法工程师将一些在开发集的资源迁移到平台这边来，而这些工作量也主要集中的数据的迁移，以及格式的对齐上。</li>
+<li>心智耗费成本：这个成本也是由于平台本身业务以及功能的复杂所导致的。譬如说：AI平台，在多个模块相互关联的情况下，往往有时候发起一个任务，需要多个模块的资源进行协调，而这个时候用户有时候就不得不去记忆不同模块资源的对应ID，这其实是很让人心累（尤其是在命令行使用时）。</li>
+</ul>
+<p>而减少这些成本，我们则可以从这几个方面入手（主要参考的是尼尔森十大可用性原则）：</p>
+<ul>
+<li>人性化帮助</li>
+<li>容错处理</li>
+<li>防错原则</li>
+<li>撤销重做原则</li>
+<li>状态可见</li>
+</ul>
+<p>（具体后面再写个介绍一下这一块）</p>
+<h2>三、情感化</h2>
+<p>在B端，很多时候都会忽略情感化的事情，但据我这几个月的实践来看，情感化其实在B端也是非常重要的一环。<br />对于B端我们可以从马斯洛五层出发，将实现的层次分为三个：</p>
+<ul>
+<li>可用性</li>
+<li>稳定性</li>
+<li>情感化</li>
+</ul>
+<p>一个好的情感化设计可以极大的提升用户体验，拉近平台与用户的距离。</p>
+<p>对于情感化设计，我个人有以下一些心得：</p>
+<ul>
+<li>设计合理，保持克制：相关的情感化设计，要和全平台的相关设计逻辑保持一致，且由于B端产品的主要目的其实是为了提升效率，因此我们的情感化设计也不能有损于我们的主要目标，这也需要我们对于这些情感化的添加要保持克制</li>
+<li>明确用户，投其所好：对于自己要服务的用户，我们也需要明确，并对设计符合他们审美，以及使用习惯</li>
+</ul>
+<p>如何去做：</p>
+<ul>
+<li>产品引导</li>
+<li>文字 or 邮件关怀</li>
+<li>图形</li>
+</ul>
+]]></content><link href="https://github.com/srtian/Blog/issues/17" rel="alternate"/><published>2023-03-02T09:27:47+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/16</id><title>关于 BPM 的一些记录与思考</title><updated>2023-03-02T09:28:11.657889+00:00</updated><content type="html"><![CDATA[<h1>BPMN2 及相关概念</h1>
+<p>去年刚入职的时候，学习了 AWS 的关于 BPMN2 的一些文档，输出一下自己对于文档的理解：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1622973941077-4798449f-2c53-465d-8e83-17e0dd2e48a7.png#clientId=ud374fb22-d32f-4&amp;from=paste&amp;height=500&amp;id=uec962f42&amp;name=image.png&amp;originHeight=744&amp;originWidth=2356&amp;originalType=binary&amp;ratio=1&amp;size=298008&amp;status=done&amp;style=none&amp;taskId=ue26f5275-bf9c-4914-a7f9-16be68b24f6&amp;width=1583" alt="image.png" /></p>
+<h1>流程</h1>
+<h2>流程是什么？</h2>
+<p>引用《流程性组织》的说法：流程是一套<strong>完整的端到端</strong>，<strong>为客户创造价值的活动连接集合</strong>。</p>
+<ul>
+<li>端到端： 从客户需求中来，到客户需求中去</li>
+<li>为客户创造价值： 利他精神。流程的设计要全景的、本质的思考客户的任务、客户的痛点、客户的需求、要全力以赴的去满足客户的要求。而不是因为公司内部的专业化分工、科层制体系，最后搞得只能满足内部的要求</li>
+</ul>
+<p>那流程如何满足客户的要求呢：</p>
+<ul>
+<li>快速：流程的一个重要属性就是时间、在设计结构的会后，可以吧串行变成并行、删除一些非必须的活动、删除一些非必要的签字</li>
+<li>质量：第一是保证正确性，即用户的操作需要正确的响应，不出错，或者出现用户预期之外的事件发生。其次对于流程本身，重要的流程有必要的风控节点，会有评审的合理控制点，通过专业化的评审，有效的决策，系统的测试、检查、质量管理来保证质量是为消费者和客户保驾护航的</li>
+<li>成本：流程一次跑通，结束。这里需要给予一些用户提示</li>
+<li>容易：对流程本身的要求就是需要高效、简单，心智负担小等</li>
+</ul>
+<blockquote>
+<p>其实总的来说，流程的这些需求，对于广泛的 B端产品 都是适用的。上述的这些要素，对于几乎所有的 B 端产品想要满足客户的需要，让用户用的舒服，都值得参考 </p>
+</blockquote>
+<p>那么流程本身，又有哪些必要构成呢：</p>
+<ol>
+<li>输入：任何流程、不管流程整体还是某个活动都有一定的输入</li>
+<li>活动：代表一中动作和行为，这样才能产生价值和落地</li>
+<li>输出：经过一系列的动作，将输入转化为输出</li>
+<li>职位：强调在流程中呈现的不是部门而是职位，只有通过职位才能连接个体，才能让跨部门的员工实现端到端的协作。要注意部门和部门之间的协同问题，强调部门和部门之间通过人与人的协同才会高效。</li>
+<li>相互作用：流程有两种关系，一种是串行一种是并行，在很多场景下，并行要比串行好，一方面节省时间，一方面实现了人与人之间的协同</li>
+<li>时间：一定要在流程中标注出时间、每一个动作的执行时间、我们要保证每个动作的执行人要有自律和非常重要的时间观念</li>
+<li>信息接口：流程数据的对外同步</li>
+<li>客户：在新的流程体系里，一切流程都是面向客户的，反思流程是否走完了全过程，实现了客户的价值与要求（需要回答两个问题：1. 对客户要有清晰的认知，客户是谁？客户端的需求是什么？2.用什么去实现客户价值）</li>
+</ol>
+<p>从上述必要构成出发，从领域驱动设计的角度来讲，我们对于一个流程的模型，或许可以如此抽象：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/296173/1624416125530-6d61e184-1a47-43e3-98d6-5e2308d0ad92.png#clientId=uc9de569a-6de0-4&amp;from=paste&amp;height=954&amp;id=ufd557560&amp;name=image.png&amp;originHeight=954&amp;originWidth=2090&amp;originalType=binary&amp;ratio=1&amp;size=126280&amp;status=done&amp;style=none&amp;taskId=udd88226e-99f5-48c5-b212-be8e0852401&amp;width=2090" alt="image.png" /></p>
+]]></content><link href="https://github.com/srtian/Blog/issues/16" rel="alternate"/><category term="产品"/><published>2023-03-02T09:27:22+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/15</id><title>浅谈 Rust 前端应用开发</title><updated>2023-03-02T09:28:11.858516+00:00</updated><content type="html"><![CDATA[<p>随着技术的不断演进，近年来愈来越多的非前端开发语言诸如：Rust、Go 等也开始进入前端/跨端应用开发领域，并收获了不小的开源社区的关注。因此本次在此尝试对基于 Rust 的一些 前端/跨端 应用开发进行一些分析，来分析一下这种开发模式的技术基础、基本方案等情况，由于篇幅原因将分为两部分：第一部分，主要讨论 Rust 前端应用开发的基本现状、原理以及收益等，而第二部分则会讨论号称 Electron 终结者的 Tauri 的基本情况、最大卖点、基本架构组成等。
 <a name="rwzVM"></a></p>
 <h1>一、兴起的基础</h1>
 <p>对于前端应用开发有一定了解的同学应该知道，可以在浏览器端运行的编程语言主要有两种：</p>
@@ -115,7 +200,7 @@ pub struct Element {
 <li><a href="https://rustwasm.github.io/docs/book/introduction.html">https://rustwasm.github.io/docs/book/introduction.html</a></li>
 <li><a href="https://webassembly.org/docs/security/">https://webassembly.org/docs/security/</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/15" rel="alternate"/><published>2023-03-02T09:25:44+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/14</id><title>浅谈 Rust 所有权机制</title><updated>2023-03-02T09:25:48.347738+00:00</updated><content type="html"><![CDATA[<h1>一、什么是 stack 和 heap</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/15" rel="alternate"/><category term="Rust"/><published>2023-03-02T09:25:44+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/14</id><title>浅谈 Rust 所有权机制</title><updated>2023-03-02T09:28:12.050759+00:00</updated><content type="html"><![CDATA[<h1>一、什么是 stack 和 heap</h1>
 <p>stack 和 heap 都用于变量的内存存储。对于大多数的编程人员来讲，都无需去关心内存是如何分配到 heap 和 stack 中的（实际上，对于 stack   和 heap 的区别，也很多人并不是很清楚）。譬如在JavaScript中，大多数人知道一个结论：基本数据类型放在 stack 中，而引用数据类型放在 heap 里面。但一旦问到，为何需要这样进行划分的时候，少有人可以说上一二。</p>
 <p>那它们到底有什么区别呢？ 首先它们虽然都是可供代码使用的内存，但结构是不同的。 stack是一个线性的数据结构，以放入值得顺序存储值并以相反的顺序取出值，也就是我们常说的：后进先出。其数据的输入和取出，则通常被称为 进栈、出栈。由于 <code>stack</code>是线性的数据结构，所以 stack 中的所有数据都是必须占用<strong>已知且固定</strong>的大小。</p>
 <p>而 heap 则是一个非线性的数据结构，是缺乏组织的。因此对于一些在初始时，大小未知或大小可能发生变化的数据，则可以放在堆中。当我们想要在堆中存储一些数据时，我们通常其实是请求一块大小合适的空间，然后操作系统在堆中搜索一个足够大的空间以匹配我们所请求的内存量，并将其标记为已用，并返回一个表示该位置地址的 **指针， **而这个指针也通常被存在 stack 中。这个过程也就是 <strong>堆内存分配</strong>，也常被称为 <strong>内存分配。</strong></p>
@@ -277,7 +362,7 @@ fn main() {
 }
 </code></pre>
 <p>如此我们就能将借用的变量进行返回来。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/14" rel="alternate"/><category term="Rust"/><published>2023-03-02T08:09:43+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/13</id><title>产品可用性之容错处理设计及实践</title><updated>2023-03-02T09:25:48.522926+00:00</updated><content type="html"><![CDATA[<h2>一、为什么说容错处理很重要</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/14" rel="alternate"/><category term="Rust"/><published>2023-03-02T08:09:43+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/13</id><title>产品可用性之容错处理设计及实践</title><updated>2023-03-02T09:28:12.198690+00:00</updated><content type="html"><![CDATA[<h2>一、为什么说容错处理很重要</h2>
 <p>B端产品由于其自身就具有一定的业务复杂度以及上手成本，因此在可用性方面，做好容错处理至关重要。一个好的容错处理既可以有效的提升用户使用产品的顺畅程度以及使用效率，也可以避免一些产品设计不够完善的问题的暴露。<br />
 <br />下图是我在学习尼尔森十大可用性原则时所做的学习思维导图：<br /></p>
 <p><img src="https://cdn.nlark.com/yuque/0/2020/svg/296173/1591757022787-9e968925-89d4-4a08-ad73-1f24b61a8298.svg" alt="" />从上述的思维导图我们不难发现，尼尔森所强调的可用性原则里面，绝大部分其实都和容错处理息息相关。我个人理解，容错处理我们可以在一下几个方面进行设计：</p>
@@ -330,7 +415,7 @@ fn main() {
 <br />类似的例子还有很多，比如PS，LR等操作软件，也提供了历史记录的功能，可以轻松回退的相应的地方<br /></p>
 <h2>结语</h2>
 <p>上述只是我个人在实践过程中的一些体会以及方法论，因为大家的产品特征不同，所要解决的问题，目标用户群体也不同。因此在具体的设计时，要根据自身的特点，去因地制宜的设计合理的容错处理机制。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/13" rel="alternate"/><category term="Web"/><category term="产品"/><category term="Top"/><published>2020-06-10T07:07:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/12</id><title>简述JavaScript模块化编程</title><updated>2023-03-02T09:25:48.762245+00:00</updated><content type="html"><![CDATA[<h1>简述JavaScript模块化编程</h1>
+]]></content><link href="https://github.com/srtian/Blog/issues/13" rel="alternate"/><category term="Web"/><category term="产品"/><category term="Top"/><published>2020-06-10T07:07:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/12</id><title>简述JavaScript模块化编程</title><updated>2023-03-02T09:28:12.370189+00:00</updated><content type="html"><![CDATA[<h1>简述JavaScript模块化编程</h1>
 <p>在早期编写JavaScript时，我们只需在 script 标签内写入JavaScript的代码就可以满足我们对页面交互的需要了。但随着时间的推移，时代的发展，原本的那种简单粗暴的编写方式所带来的诸如逻辑混乱，页面复杂，可维护性差，全局变量暴露等问题接踵而至，前辈们为了解决这些问题提出了很种的解决方案，其中之一就是JavaScript模块化编程。总的来说，它有以下四种优点：<br /></p>
 <ol>
 <li>解决项目中的全局变量污染的问题。</li>
@@ -685,7 +770,7 @@ export { add as add1 } from ./example.js; //以add这个名称导入，再以add
 export *  from ./example.js;
 </code></pre>
 <p><br />// 最后求一波暑期前端实习的坑位-_-||</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/12" rel="alternate"/><category term="JavaScript"/><published>2020-04-07T07:51:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/11</id><title>聊一聊常见的浏览器端数据存储方案</title><updated>2023-03-02T09:25:48.963598+00:00</updated><content type="html"><![CDATA[<h3>前言：</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/12" rel="alternate"/><category term="JavaScript"/><published>2020-04-07T07:51:09+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/11</id><title>聊一聊常见的浏览器端数据存储方案</title><updated>2023-03-02T09:28:12.566983+00:00</updated><content type="html"><![CDATA[<h3>前言：</h3>
 <p>五一假期在撸代码的时候用到cookie，感觉对浏览器的数据存储方案不是很了解，因此又去翻了两本大头书中间的关于浏览器端数据存储的章节，同时去MDN逛了逛，又看了几篇文章，算是对浏览器的数据存储方案有了一个了解，在此总结一下！</p>
 <h2>浏览器存储</h2>
 <p>在浏览器端存储数据对我们是很有用，这相当于赋予浏览器记忆的功能，可以纪录用户的所有状态信息，增强用户体验。比如当纪录用户的登陆状态时，可以让用户能够更快的进行访问，而不是每次登陆时都需要去进行繁琐的操作。</p>
@@ -927,7 +1012,7 @@ request.onupgradeneededd = function(e) {
 <h4>3. indexedDB受同源策略的限制</h4>
 <p>indexedDB使用同源原则，这意味着它把存储空间绑定到了创建它的站点的源（典型情况下，就是站点的域或是子域），所以它不能被任何其他源访问。要着重指出的一点是 IndexedDB 不适用于从另一个站点加载进框架的内容 (不管是 <frame> 还是 &lt;iframe>。这是一项安全措施。详情请看这个：<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=595307">https://bugzilla.mozilla.org/show_bug.cgi?id=595307</a></p>
 <p>除此之外，IndexedDB还存在诸如：不适合存储敏感数据，相较于web存储机制的操作更加复杂等问题，这都是我们在使用IndexedDB时需要考虑的。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/11" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T10:04:17+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/10</id><title>React高阶组件的那些事，了解一下？</title><updated>2023-03-02T09:25:49.138119+00:00</updated><content type="html"><![CDATA[<h4>前言</h4>
+]]></content><link href="https://github.com/srtian/Blog/issues/11" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T10:04:17+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/10</id><title>React高阶组件的那些事，了解一下？</title><updated>2023-03-02T09:28:12.771442+00:00</updated><content type="html"><![CDATA[<h4>前言</h4>
 <p>学习react已经有一段时间了，期间在阅读官方文档的基础上也看了不少文章，但感觉对很多东西的理解还是不够深刻，因此这段时间又在撸一个基于react全家桶的聊天App（现在还在瞎78写的阶段，在往这个聊天App这个方向写），通过实践倒是对react相关技术栈有了更为深刻的理解，而在使用react-redux的过程中，发现connect好像还挺有意思的，也真实感受到了高阶组件所带来的便利，出于自己写项目本身就是为了学习的目的，因此对高阶组件又进行了一番学习。写下这篇文章主要是对高阶组件的知识进行一个梳理与总结，如有错误疏漏之处，敬请指出，不胜感激。</p>
 <h2>初识高阶组件</h2>
 <p><em>要学习高阶组件首先我们要知道的就是高阶组件是什么，解决了什么样的问题。</em></p>
@@ -1150,7 +1235,7 @@ class HOC extends ... {
 <p>实际上我们不用自己来写getDisplayName这个函数，recompose 提供了这个函数，我们只要使用即可。</p>
 <h4>结尾语</h4>
 <p>我们其他要注意的就是<a href="https://react.bootcss.com/react/docs/higher-order-components.html">官方文档</a>所说的几个约定与相关规范，在此我就不一一赘述了，感兴趣的可以自己去看看。最后很感谢能看到这里的朋友，因为水平有限，如果有错误敬请指正，十分感激！</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/10" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T10:00:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/9</id><title> 从 HTML5 WebSocket 到 Socket.io</title><updated>2023-03-02T09:25:49.331001+00:00</updated><content type="html"><![CDATA[<h2>HTML5 WebSocket概述</h2>
+]]></content><link href="https://github.com/srtian/Blog/issues/10" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T10:00:39+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/9</id><title> 从 HTML5 WebSocket 到 Socket.io</title><updated>2023-03-02T09:28:12.970845+00:00</updated><content type="html"><![CDATA[<h2>HTML5 WebSocket概述</h2>
 <p>作为新一代的web标准，HTML5为我们提供了很多有用的东西，比如canvas，本地存储（已经分离出去了），多媒体编程接口，当然还有我们的WebSocket。WebSocket是HTML5开始提供的一种浏览器与服务器间进行全双工通讯（full-duplex）的网络技术，可以传输基于信息的文本和二进制的数据。它于2011年被IETF定为标准 RFC 6455，同时WebSocket API也被W3C定为标准。</p>
 <h2>一、WebSocket产生的背景</h2>
 <h3>1.黎明前的黑暗——实时web应用的需求</h3>
@@ -1316,7 +1401,7 @@ client.on(&#x27;disconnect&#x27;,function(){
 <pre><code class="language-JavaScript">import io from &#x27;socket.io-client&#x27;
 const socket = io(&#x27;ws://localhost:8080&#x27;)
 </code></pre>
-]]></content><link href="https://github.com/srtian/Blog/issues/9" rel="alternate"/><category term="FE"/><category term="Web"/><category term="JavaScript"/><published>2019-09-28T09:59:23+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/8</id><title>Redux 源码解读</title><updated>2023-03-02T09:25:49.504378+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/9" rel="alternate"/><category term="FE"/><category term="Web"/><category term="JavaScript"/><published>2019-09-28T09:59:23+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/8</id><title>Redux 源码解读</title><updated>2023-03-02T09:28:13.166762+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>作为React全家桶的一份子，Redux为react提供了严谨周密的状态管理。但Redux本身是有点难度的，虽然学习了React也有一段时间了，自我感觉算是入了门，也知道redux的大概流程。但其背后诸如creatstore,applymiddleware等API背后到底发生了什么事情，我其实还是不怎么了解的，因此最近花了几天时间阅读了Redux的源码，写下文章纪录一下自己看源码的一些理解。（redux4.0版本）</p>
 <h3>一、源码结构</h3>
 <p>Redux是出了名的短小精悍（恩，这个形容很贴切），只有2kb大小，且没有任何依赖。它将所有的脏活累活都交给了中间件去处理，自己保持着很好的纯洁性。再加上redux作者在redux的源码上，也附加了大量的注释，因此redux的源码读起来还是不算难的。</p>
@@ -1657,7 +1742,7 @@ export default function bindActionCreators(actionCreators, dispatch) {
 </code></pre>
 <h3>小节</h3>
 <p>看一遍redux，感觉设计十分巧秒，不愧是大佬的作品。这次看代码只是初看，往后随着自己学习的不断深入，还需多加研究，绝对还能得到更多的体会。</p>
-]]></content><link href="https://github.com/srtian/Blog/issues/8" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:58:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/7</id><title>深入理解 Redux 中间件——走马观花</title><updated>2023-03-02T09:25:49.709042+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/8" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:58:06+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/7</id><title>深入理解 Redux 中间件——走马观花</title><updated>2023-03-02T09:28:13.393462+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>最近几天对 redux 的中间件进行了一番梳理，又看了 redux-saga 的文档，和 redux-thunk 和 redux-promise 的源码，结合前段时间看的redux的源码的一些思考，感觉对 redux 中间件的有了更加深刻的认识，因此总结一下。</p>
 <h3>一、Redux中间件机制</h3>
 <p>Redux本身就提供了非常强大的数据流管理功能，但这并不是它唯一的强大之处，它还提供了利用中间件来扩展自身功能，以满足用户的开发需求。首先我们来看中间件的定义：</p>
@@ -1834,7 +1919,7 @@ function loadInitData(ip) {
 <li>《深入浅出React和Redux》</li>
 <li>《深入React技术栈》</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/7" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:56:41+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/6</id><title>初探 HTML5 Web Workers</title><updated>2023-03-02T09:25:49.890937+00:00</updated><content type="html"><![CDATA[<h3>一、Web Workers是什么</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/7" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:56:41+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/6</id><title>初探 HTML5 Web Workers</title><updated>2023-03-02T09:28:13.566262+00:00</updated><content type="html"><![CDATA[<h3>一、Web Workers是什么</h3>
 <blockquote>
 <p>Web Worker为Web内容在后台线程中运行脚本提供了一种简单的方法。线程可以执行任务而不干扰用户界面。此外，他们可以使用XMLHttpRequest执行 I/O (尽管responseXML和通道属性总是为空)。一旦创建， 一个worker 可以将消息发送到创建它的JavaScript代码, 通过将消息发布到该代码指定的事件处理程序 (反之亦然)。 —— MDN</p>
 </blockquote>
@@ -1962,7 +2047,7 @@ worker.postMessage({
 <li><a href="https://qiutc.me/post/the-multithread-in-javascript-web-worker.html">https://qiutc.me/post/the-multithread-in-javascript-web-worker.html</a></li>
 <li><a href="https://juejin.im/post/5a90233bf265da4e92683de3">https://juejin.im/post/5a90233bf265da4e92683de3</a></li>
 </ol>
-]]></content><link href="https://github.com/srtian/Blog/issues/6" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:54:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/5</id><title>浅谈HTTP缓存</title><updated>2023-03-02T09:25:50.080860+00:00</updated><content type="html"><![CDATA[<h3>一、HTTP缓存概述（HTTP Cache）</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/6" rel="alternate"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:54:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/5</id><title>浅谈HTTP缓存</title><updated>2023-03-02T09:28:13.729895+00:00</updated><content type="html"><![CDATA[<h3>一、HTTP缓存概述（HTTP Cache）</h3>
 <p>要搞清楚HTTP缓存，首先当然是要搞清楚缓存是啥，按照MDN的描述，缓存是这样的：</p>
 <blockquote>
 <p>缓存是一种保存资源副本并在下次请求时直接使用该副本的技术。当 web 缓存发现请求的资源已经被存储，它会拦截请求，返回该资源的拷贝，而不会去源服务器重新下载。这样带来的好处有：缓解服务器端压力，提升性能(获取资源的耗时更短了)。对于网站来说，缓存是达到高性能的重要组成部分。缓存需要合理配置，因为并不是所有资源都是永久不变的：重要的是对一个资源的缓存应截止到其下一次发生改变（即不能缓存过期的资源）。</p>
@@ -2030,7 +2115,7 @@ cache-control: max-age=691200
 <li><a href="https://www.cnblogs.com/lyzg/p/5125934.html#_label3">https://www.cnblogs.com/lyzg/p/5125934.html#_label3</a></li>
 <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching_FAQ">https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching_FAQ</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/5" rel="alternate"/><category term="FE"/><category term="Web"/><category term="Basis"/><published>2019-09-28T09:52:53+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/4</id><title>五分钟，简单聊一聊React Component的发展历程</title><updated>2023-03-02T09:25:50.253053+00:00</updated><content type="html"><![CDATA[<h3>一、 前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/5" rel="alternate"/><category term="FE"/><category term="Web"/><category term="Basis"/><published>2019-09-28T09:52:53+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/4</id><title>五分钟，简单聊一聊React Component的发展历程</title><updated>2023-03-02T09:28:13.902942+00:00</updated><content type="html"><![CDATA[<h3>一、 前言</h3>
 <p>随着 react 最新的一个大版本中，给我们带来了 Hooks：<a href="https://reactjs.org/blog/2019/02/06/react-v16.8.0.html">React v16.8: The One With Hooks</a>，从而将 Function component 的能力提高了一大截，成功的拥有了可以与 Class component 抗衡的能力。但话说回来，虽然 Hooks 看起来很美好，最近也有不少文章都讲解了Hooks这一“黑魔法”，但技术的不断演进，本身就是一个解决以往所存在问题的过程，因此我个人认为着眼于现在，回望过去，去看一看 react component 的发展之路，去看看 Class component 以及 Function component 为什么会出现以及它们出现的意义，所要解决的问题，也对于我们全面了解 react 是很有帮助的。</p>
 <p>从 react component 的发展历程上来看，它主要是经历了一下三个阶段：</p>
 <ol>
@@ -2203,7 +2288,7 @@ export default MyComponent
 <li><a href="http://taobaofed.org/blog/2018/11/27/hooks-and-function-component/">http://taobaofed.org/blog/2018/11/27/hooks-and-function-component/</a></li>
 <li><a href="https://www.freecodecamp.org/news/this-is-why-we-need-to-bind-event-handlers-in-class-components-in-react-f7ea1a6f93eb/">https://www.freecodecamp.org/news/this-is-why-we-need-to-bind-event-handlers-in-class-components-in-react-f7ea1a6f93eb/</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/4" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:52:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/3</id><title>浅析 Rematch 源码</title><updated>2023-03-02T09:25:50.423872+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/4" rel="alternate"/><category term="FE"/><category term="React"/><published>2019-09-28T09:52:12+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/3</id><title>浅析 Rematch 源码</title><updated>2023-03-02T09:28:14.087467+00:00</updated><content type="html"><![CDATA[<h3>前言</h3>
 <p>入职后公司用的技术栈还是 react，但状态管理由我原本熟悉的 redux 进化成了在 redux 基础上封装而成的 rematch。用起来也着实方便不少，减少了很多样板代码的编写，同时也不用引入中间件来管理异步请求了，但在用起来的过程中难免就会引起了我对 rematch 的一些小疑问：</p>
 <ul>
 <li>它是怎么封装 诸如action creator这些以往在 redux 中繁琐的“样本”代码的？</li>
@@ -2606,7 +2691,7 @@ export default function({
 <li><a href="https://juejin.im/post/5b13fe155188257d6c046728">Redux 源码解读</a></li>
 <li><a href="https://juejin.im/post/5b237569f265da59bf79f3e9">深入理解 Redux 中间件</a></li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/3" rel="alternate"/><category term="FE"/><category term="JavaScript"/><category term="React"/><published>2019-09-28T09:41:20+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/2</id><title>《Don't Make Me Think》读书笔记</title><updated>2023-03-02T09:25:50.601831+00:00</updated><content type="html"><![CDATA[<h3>一、别让我思考</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/3" rel="alternate"/><category term="FE"/><category term="JavaScript"/><category term="React"/><published>2019-09-28T09:41:20+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/2</id><title>《Don't Make Me Think》读书笔记</title><updated>2023-03-02T09:28:14.267349+00:00</updated><content type="html"><![CDATA[<h3>一、别让我思考</h3>
 <p>网页的易用性最重要的一点就是无需用户去思考。这也代表着交互一般劲量趋向于简单化，平整化，以减少用户的认知负担，减少对用户的干扰。</p>
 <p>示例：亚马逊搜索没有提及一定要去搜索什么内容，只会对你所输入的进行分析，这样就会减少用户的思考的成本（淘宝也是如此，通过自然语言处理来对用户的输入进行分析）</p>
 <p>比较典型的地方：</p>
@@ -2764,7 +2849,7 @@ export default function({
 <li>容易从错误中恢复</li>
 <li>如有不确定，记得道歉</li>
 </ul>
-]]></content><link href="https://github.com/srtian/Blog/issues/2" rel="alternate"/><category term="Notes"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:34:00+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/1</id><title>浅析浏览器进程发展历程</title><updated>2023-03-02T09:25:50.810076+00:00</updated><content type="html"><![CDATA[<h3>一、浏览器的多进程概括</h3>
+]]></content><link href="https://github.com/srtian/Blog/issues/2" rel="alternate"/><category term="Notes"/><category term="FE"/><category term="Web"/><published>2019-09-28T09:34:00+00:00</published></entry><entry><id>https://github.com/srtian/Blog/issues/1</id><title>浅析浏览器进程发展历程</title><updated>2023-03-02T09:28:14.463568+00:00</updated><content type="html"><![CDATA[<h3>一、浏览器的多进程概括</h3>
 <p>要想搞明白什么是浏览器的多进程，首先得知道什么是进程。按照维基百科的说法：</p>
 <blockquote>
 <p>进程是计算机中已运行程序的实体。进程是线程的容器，进程本身不运行。程序本身只是指令的集合，进程才是程序（指令）的真正运行。每个程序可以有多个进程，每个进程都有自己的资源。</p>
