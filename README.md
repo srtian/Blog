@@ -9,6 +9,7 @@ And have some thoughts on Saas and toB businesses. Besides development, I am als
 - GitHub: [@Srtian](https://github.com/srtian)
 - Instagram: [@Srtian](https://www.instagram.com/srtian96/?next=%2F)
 - Ex-blog: [Yueque](https://www.yuque.com/srtian)
+- JUEJING: [@JUEJING](https://juejin.cn/user/2647279729648551/posts)
 - Some flow records about life and work: [Record](https://github.com/srtian/Record)
 - [Reading Record](https://srtbooks.notion.site/a55c12708dbe42969b7052a6fe9f35c2?v=371ed1453ada49789f6d176e7d00ef08)
 ## 置顶文章
