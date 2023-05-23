@@ -1,15 +1,14 @@
 # About Me
-Hi, I'm srtian. Now I'm working as a senior software engineer at ByteDance. Before that,
-I worked for Kwai and Horizon Robotics. I mainly focus on web development.
-And have some thoughts on Saas and toB businesses. Besides development, I am also interested in travel, photography, and reading. Have a good day~
+Hi, I'm srtian. Now I'm working as a senior software development engineer in ByteDance's security department. Before that,
+I worked for Kwai and Horizon Robot. I mainly focus on Web development,
+and have some understanding of Saas and tob businesses. Besides development, I am also interested in travel, photography and reading. Have a good day~
 
 ---
 - WeChat: Srtiann
 - Email: shenruotian@outlook.com
 - GitHub: [@Srtian](https://github.com/srtian)
 - Instagram: [@Srtian](https://www.instagram.com/srtian96/?next=%2F)
-- Ex-blog: [@Srtian](https://www.yuque.com/srtian)
-- JUEJING: [@Srtian](https://juejin.cn/user/2647279729648551/posts)
+- Ex-blog: [Yueque](https://www.yuque.com/srtian)
 - Some flow records about life and work: [Record](https://github.com/srtian/Record)
 - [Reading Record](https://srtbooks.notion.site/a55c12708dbe42969b7052a6fe9f35c2?v=371ed1453ada49789f6d176e7d00ef08)
 ## 置顶文章
