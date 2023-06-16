@@ -7,7 +7,7 @@ and have some understanding of Saas and tob businesses. Besides development, I a
 - WeChat: Srtiann
 - Email: shenruotian@outlook.com
 - GitHub: [@Srtian](https://github.com/srtian)
-- Instagram: [@Srtian](https://www.instagram.com/srtian96/?next=%2F)
+- Instagram: [@Srtian](https://www.instagram.com/srtian96/)
 - Ex-blog: [Yueque](https://www.yuque.com/srtian)
 - Some flow records about life and work: [Record](https://github.com/srtian/Record)
 - [Reading Record](https://srtbooks.notion.site/a55c12708dbe42969b7052a6fe9f35c2?v=371ed1453ada49789f6d176e7d00ef08)
