@@ -1,6 +1,6 @@
 # About Me
 Hi, I'm srtian. Now I'm working as a senior software development engineer in ByteDance's security department. Before that,
-I worked for Kwai and Horizon Robot. I mainly focus on Web development,
+I worked for Kwai and Horizon Robots. I mainly focus on Web development,
 and have some understanding of Saas and tob businesses. Besides development, I am also interested in travel, photography and reading. Have a good day~
 
 ---
