@@ -1,5 +1,5 @@
 # About Me
-Greetings, I am Srtian, a seasoned software development engineer specializing in security at ByteDance in Singapore. I have had the privilege of collaborating with Kwai and Horizon Robots in the past. My area of expertise is web development, with a strong grasp of Saas and tob businesses. Apart from my professional endeavors, I am an avid traveler, photographer, and reader. Wishing you a wonderful day ahead!
+Greetings, I am Srtian, a senior Software Engineer for security department at ByteDance in Singapore. I have had the privilege of collaborating with Kwai and Horizon Robots in the past. My area of expertise is web development, with a strong grasp of Saas and tob businesses. Apart from my professional endeavors, I am an avid traveler, photographer, and reader. Wishing you a wonderful day ahead!
 
 ---
 - WeChat: Srtiann
